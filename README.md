@@ -21,13 +21,15 @@ It uses a Google Spreadsheet as the database to store task assignments, coordina
 Follow these steps to deploy this application to your own Google Drive.
 
 ### 1. Prepare the Database (Google Sheet)
-1. Create a new Google Spreadsheet.
-2. Create two sheets exactly named:
+1. Go to [docs.google.com](https://www.docs.google.com)
+2. Make sure to login with your admin account.
+3. Create a new Google Spreadsheet. ![sheet_icon](./assets/sheet_icon.png)
+4. Create two sheets exactly named:
    - `Maintenance`
    - `YearColor`
-3. In the `Maintenance` sheet, set up the following headers in Row 1:
+5. In the `Maintenance` sheet, set up the following headers in Row 1:
    `Task_Code`, `Year`, `Highway_Number`, `Milestone_Start_Lat`, `Milestone_Start_Lng`, `Milestone_End_Lat`, `Milestone_End_Lng`, `Distance`, `Cost`, `Guarantee_Start`, `Guarantee_End`, `Add_Date`, `Adder`
-4. In the `YearColor` sheet, set up the following headers in Row 1:
+6. In the `YearColor` sheet, set up the following headers in Row 1:
    `Year`, `Color`
 
 ### 2. Add the Code
