@@ -1,20 +1,15 @@
 # Highway Maintenance Mapper (DOH Mapper)
 
-This is a single-page geographic web application built on **Google Apps Script (GAS)**, designed for the Department of Highways (DOH) to map, visualize, and manage highway maintenance tasks.
+DOH Mapper is a web-application built on **Google Apps Script (GAS)**, designed for the Department of Highways (DOH) to map, visualize, and manage highway maintenance tasks.
 
-It uses a Google Spreadsheet as the database to store task assignments, coordinates, budgets, and maintenance statuses. The frontend incorporates Leaflet.js to render interactive road maps, actively fetching actual highway vector data to draw precise curves matching the real world.
-
----
+It uses a Google Spreadsheet as the database to store task assignments, coordinates, budgets, and maintenance statuses. The frontend incorporates Leaflet.js to render interactive road maps, actively fetching actual highway vector data and milestone coordinates to draw precise curves matching the real world.
 
 ## 🚀 Features
 
 - **Interactive Map Visualization**: Automatically traces the exact highway route on a Leaflet map from Start/End milestones.
 - **Data Management Table**: A mobile-responsive table view to Add, Edit, and Delete maintenance tasks.
-- **Coordinate Picker**: Includes a mini-map in the Add/Edit form to pick exact latitude and longitude coordinates.
 - **Access Control**: Built-in permission system allowing for Public, Organization-wide, or strict Whitelist edit access.
 - **Account Switcher**: Solves the notorious Google Apps Script "Multiple Accounts Signed In" issue without requiring users to open Incognito tabs.
-
----
 
 ## 🛠️ How to Deploy
 
@@ -23,39 +18,65 @@ Follow these steps to deploy this application to your own Google Drive.
 ### 1. Prepare the Database (Google Sheet)
 1. Go to [docs.google.com](https://www.docs.google.com)
 2. Make sure to login with your admin account.
-3. Create a new Google Spreadsheet. ![sheet_icon](./assets/sheet_start.png)
-4. Create two sheets exactly named:
+3. Create a new Google Spreadsheet.<br/>![sheet_icon](./assets/sheet_start.png)
+4. Create two sheets exactly named:<br/>![sheet_icon](./assets/sheet_sub_name.png)
    - `Maintenance`
    - `YearColor`
 5. In the `Maintenance` sheet, set up the following headers in Row 1:
    `Task_Code`, `Year`, `Highway_Number`, `Milestone_Start_Lat`, `Milestone_Start_Lng`, `Milestone_End_Lat`, `Milestone_End_Lng`, `Distance`, `Cost`, `Guarantee_Start`, `Guarantee_End`, `Add_Date`, `Adder`
+   <br/>**Or can copy this and paste it into the first row of the sheet**
+   <sub>
+
+   ```text
+   Task_Code	Year	Highway_Number	Milestone_Start_Lat	Milestone_Start_Lng	Milestone_End_Lat	Milestone_End_Lng	Distance	Cost	Guarantee_Start	Guarantee_End	Add_Date	Adder
+   ```
+   
+   </sub>
+   
 6. In the `YearColor` sheet, set up the following headers in Row 1:
    `Year`, `Color`
+   <br/>**Or can copy this and paste it into the first row of the sheet**
+   <sub>
+
+   ```text
+   Year	Color
+   ```
+   
+   </sub>
 
 ### 2. Add the Code
-1. From your Google Sheet, click **Extensions > Apps Script**.
-2. Create the following 4 files in the script editor and copy the code from this repository into them:
+1. From your Google Sheet, click **Extensions > Apps Script**.<br/>![sheet_icon](./assets/nav_script.png)
+2. Create the following 4 files in the script editor by pressing add and copy the code from this repository into them:<br/>![addfile](./assets/add_file.png)
    - `Code.gs` (Script)
    - `Index.html` (HTML)
    - `Data.html` (HTML)
    - `Map.html` (HTML)
-3. Save the project.
+3. Save the project **(Ctrl+s)**.
 
-### 3. Configure Access Control (Optional)
-In `Code.gs`, you can modify the `CURRENT_ACCESS_MODE` near the top of the file to control who can see the "Edit" tab:
-- `ACCESS_MODE.PUBLIC`: Everyone who can view the app can edit data.
-- `ACCESS_MODE.ORG`: Only users with a specific email domain (e.g., `@doh.go.th`) can edit.
-- `ACCESS_MODE.WHITELIST`: Only explicitly listed email addresses can edit.
+### 3. Configure Access Control (Google Sheet Sharing)
+The "Edit Data" (แก้ไขข้อมูล) tab is always visible in the app. However, **actual edit access is strictly controlled by your Google Spreadsheet sharing settings.**
 
-### 4. Deploy as a Web App (Access Levels)
-1. Click the **Deploy** button in the top right, then **New deployment**.
-2. Select type **Web app**.
+1. Open your Google Spreadsheet (`Maintenance` database).
+2. Click the **Share** button in the top right corner.<br/>![shere](./assets/nav_shere.png)
+3. To limit who can edit the map data:
+   - Make sure **General access** is set to **Restricted** or **Viewer**.
+   - Explicitly add the email addresses of the staff members who need to edit the data and set their role to **Editor**.
+> [!NOTE]
+> If a Viewer tries to save or delete data in the app, Google will automatically block them and show a "Permission Denied" error popup.
+
+| Permission | access in web application |
+| :--- | :--- |
+| Email who's Editor | Add, Edit, Delete |
+| Email who's Viewer | View |
+
+### 4. Deploy as a Web App
+1. In the Apps Script editor, click the **Deploy** button in the top right, then **New deployment**.<br/>![deploy_nav](./assets/nav_deploy.png)
+2. Select type **Web app**.<br/>![nav_selecttype](./assets/nav_selecttype.png)
 3. **Configuration Options:**
    - **Execute as:** You **must** select **"User accessing the web app"** (Execute as User). *This is required so the script knows who is logging in.*
-   - **Who has access:** This dropdown controls who can open the URL. It integrates with your Google Workspace settings. 
-     - **Option A (Public View / Restricted Edit):** Choose **"Anyone with Google Account"**. Everyone can view the map, but only people authorized in Step 3 can edit.
+   - **Who has access:** This dropdown controls who can open the URL. 
+     - **Option A (Public View / Restricted Edit):** Choose **"Anyone with Google Account"**. Everyone can view the map, but only "Editors" from Step 3 can actually edit data.
      - **Option B (Organization Only):** Choose **"Anyone within [Your Organization]"**. Only internal staff can open the link.
-     - **Option C (Strict Sharing):** Choose **"Only myself"** or explicitly share the script file with specific individuals in Google Drive. Only those specific people can open the link.
 4. Click **Deploy** and authorize the permissions when prompted.
 5. Copy the generated Web App URL.
 

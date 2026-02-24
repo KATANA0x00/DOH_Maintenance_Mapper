@@ -1,41 +1,6 @@
-// =======================
-//   ACCESS CONTROL SETTINGS
-// =======================
-const ACCESS_MODE = {
-  PUBLIC: 'PUBLIC',       // Everyone can edit
-  ORG: 'ORG',             // Only users with specific email domains can edit
-  WHITELIST: 'WHITELIST'  // Only specific emails can edit
-};
-const CURRENT_ACCESS_MODE = ACCESS_MODE.PUBLIC; // Change to ORG or WHITELIST to restrict
-const ORG_DOMAIN = '@doh.go.th'; // Example domain
-const WHITELIST_EMAILS = ['test@example.com', 'admin@example.com'];
-
-function checkPermissions() {
-  if (CURRENT_ACCESS_MODE === ACCESS_MODE.PUBLIC) return true;
-  
-  let userEmail;
-  try {
-    userEmail = Session.getActiveUser().getEmail();
-  } catch (e) {
-    return false;
-  }
-  
-  if (!userEmail) return false;
-  
-  if (CURRENT_ACCESS_MODE === ACCESS_MODE.ORG) {
-    return userEmail.endsWith(ORG_DOMAIN);
-  }
-  
-  if (CURRENT_ACCESS_MODE === ACCESS_MODE.WHITELIST) {
-    return WHITELIST_EMAILS.includes(userEmail);
-  }
-  
-  return false;
-}
-
 function doGet(e) {
   const template = HtmlService.createTemplateFromFile('Index');
-  template.isEditor = checkPermissions();
+  template.isEditor = true; // The UI Edit tab is always visible. Actual edit permission is governed by Google Sheet Sharing.
   template.scriptUrl = getScriptUrl();
   
   return template.evaluate()
@@ -126,7 +91,6 @@ function getMaintenanceTasks() {
 //   CREATE
 // =======================
 function addMaintenanceTask(taskObj) {
-  if (!checkPermissions()) throw new Error("Permission Denied: You do not have edit access.");
   
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Maintenance");
@@ -170,7 +134,6 @@ function addMaintenanceTask(taskObj) {
 //   UPDATE
 // =======================
 function updateMaintenanceTask(taskCode, updatedObj) {
-  if (!checkPermissions()) throw new Error("Permission Denied: You do not have edit access.");
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Maintenance");
@@ -217,7 +180,6 @@ function updateMaintenanceTask(taskCode, updatedObj) {
 //   DELETE
 // =======================
 function deleteMaintenanceTask(taskCode) {
-  if (!checkPermissions()) throw new Error("Permission Denied: You do not have edit access.");
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Maintenance");
