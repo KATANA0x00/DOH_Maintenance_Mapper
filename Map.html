@@ -1,0 +1,444 @@
+<div id="map"></div>
+<div class="taskView">
+    <button class="toggle-btn" id="pcBtn" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m.2-9l-.9.9q-.275.275-.275.7t.275.7t.7.275t.7-.275l2.6-2.6q.3-.3.3-.7t-.3-.7l-2.6-2.6q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l.9.9H9q-.425 0-.712.288T8 12t.288.713T9 13z" />
+        </svg>&nbsp;รายการบำรุง
+    </button>
+    <button class="toggle-btn" id="mobileBtn" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="m11 12.2l-.9-.9q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l2.6 2.6q.3.3.7.3t.7-.3l2.6-2.6q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-.9.9V9q0-.425-.288-.712T12 8t-.712.288T11 9zm1 9.8q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22" />
+        </svg>&nbsp;รายการบำรุง
+    </button>
+    <div class="taskView-content" id="taskViewContent">
+        <!-- Filter Controls -->
+        <div style="padding: 20px; background: white; border-bottom: 1px solid #eee;">
+            <h2 style="margin: 0 0 15px 0; color: var(--primary-color);">ข้อมูลการบำรุงรักษา</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="mapSearch" placeholder="ค้นหารหัสงาน, รหัสทางหลวง..."
+                    style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                <button id="mapReloadBtn" onclick="window.reloadMapData()" title="โหลดข้อมูลใหม่"
+                    style="background-color: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                        style="vertical-align: middle;">
+                        <path fill="currentColor"
+                            d="M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.713T18 6.75V4h2v7h-7V9h4.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.925 0 3.475-1.1T17.65 14h2.1q-.5 2.9-2.75 4.45T12 20" />
+                    </svg>
+                </button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <select id="mapSortSelect"
+                    style="padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; outline: none; background: white; color: #495057; box-sizing: border-box;">
+                    <option value="year_desc">เรียงตามปี (ใหม่ - เก่า)</option>
+                    <option value="highway_asc">เรียงตามรหัสทางหลวง</option>
+                </select>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px;">
+                    <span style="font-weight: 500; color: #495057; font-size: 14px;">ปี:</span>
+                    <input type="number" id="mapMinYear" placeholder="ตั้งแต่"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 40%; outline: none;">
+                    <span style="color: #6c757d;">-</span>
+                    <input type="number" id="mapMaxYear" placeholder="ถึง"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 40%; outline: none;">
+                </div>
+            </div>
+        </div>
+
+        <p id="taskCountText" style="color: #666; margin: 0 0 10px 0; font-size: 14px;">กำลังโหลดข้อมูล...</p>
+        <div id="taskList" style="display: flex; flex-direction: column; gap: 15px;">
+            <!-- Task cards will be injected here by JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        window.mapInstance = window.mapInstance || null;
+
+        if (window.mapInstance) {
+            window.mapInstance.remove();
+        }
+        window.mapInstance = L.map('map').setView([16.02, 100.94], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.mapInstance);
+
+        const resetBoundsControl = L.control({ position: 'bottomright' });
+        resetBoundsControl.onAdd = function (map) {
+            const btn = L.DomUtil.create('button', 'leaflet-bar');
+            btn.title = "ดูภาพรวม";
+            btn.style.cssText = "background-color: var(--primary-color); color: white; border: none; width: 44px; height: 44px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; padding: 0; box-shadow: 0 1px 5px rgba(0,0,0,0.65); transition: background-color 0.2s; margin-right: 10px; margin-bottom: 10px;";
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19v-3q0-.425.288-.712T4 15t.713.288T5 16v3h3q.425 0 .713.288T9 20t-.288.713T8 21zm14 0h-3q-.425 0-.712-.288T15 20t.288-.712T16 19h3v-3q0-.425.288-.712T20 15t.713.288T21 16v3q0 .825-.587 1.413T19 21M3 8V5q0-.825.588-1.412T5 3h3q.425 0 .713.288T9 4t-.288.712T8 5H5v3q0 .425-.288.713T4 9t-.712-.288T3 8m16 0V5h-3q-.425 0-.712-.288T15 4t.288-.712T16 3h3q.825 0 1.413.588T21 5v3q0 .425-.288.713T20 9t-.712-.288T19 8m-7 7q-1.25 0-2.125-.875T9 12t.875-2.125T12 9t2.125.875T15 12t-.875 2.125T12 15"/></svg>';
+            btn.onmouseover = function () { this.style.backgroundColor = 'var(--primary-color-hover)'; };
+            btn.onmouseout = function () { this.style.backgroundColor = 'var(--primary-color)'; };
+            btn.onclick = function (e) {
+                e.stopPropagation();
+                window.resetMapBounds();
+            };
+            return btn;
+        };
+        resetBoundsControl.addTo(window.mapInstance);
+
+        window.taskPolylinesLayer = L.featureGroup().addTo(window.mapInstance);
+        window.taskRouteLayers = {}; // Store references to individual feature groups by Task_Code
+
+        const WFS_BASE = "https://roadnet3.doh.go.th/geoserver/wfs";
+
+        function parseKM(val) {
+            if (!val) return 0;
+            return parseFloat(val.toString().replace('+', '.'));
+        }
+
+        function getPreciseCoords(targetKM, milestones) {
+            let prev = milestones[0];
+            let next = milestones[milestones.length - 1];
+            for (let i = 0; i < milestones.length - 1; i++) {
+                if (targetKM >= milestones[i].km && targetKM <= milestones[i + 1].km) {
+                    prev = milestones[i];
+                    next = milestones[i + 1];
+                    break;
+                }
+            }
+            const segmentLen = next.km - prev.km;
+            if (segmentLen === 0) return prev.coords;
+            const ratio = (targetKM - prev.km) / segmentLen;
+            const lat = prev.coords[0] + (next.coords[0] - prev.coords[0]) * ratio;
+            const lng = prev.coords[1] + (next.coords[1] - prev.coords[1]) * ratio;
+            return [lat, lng];
+        }
+
+        function findNearest(target, points) {
+            let min = Infinity;
+            let idx = 0;
+            points.forEach((p, i) => {
+                const d = Math.sqrt(Math.pow(p[0] - target[0], 2) + Math.pow(p[1] - target[1], 2));
+                if (d < min) { min = d; idx = i; }
+            });
+            return idx;
+        }
+
+        window.currentRenderId = 0;
+
+        async function processAndDrawTask(taskData, renderId) {
+            try {
+                const startCoords = [parseFloat(taskData.Milestone_Start_Lat), parseFloat(taskData.Milestone_Start_Lng)];
+                const stopCoords = [parseFloat(taskData.Milestone_End_Lat), parseFloat(taskData.Milestone_End_Lng)];
+                const highway = taskData.Highway_Number;
+                const taskColor = colorMap[taskData.Year] || '#000000';
+
+                const infraUrl = WFS_BASE + '?service=WFS&version=1.1.0&request=GetFeature&typeName=roadnet:v_section_infra_digi&CQL_FILTER=route=' + highway + '&outputFormat=application/json';
+                const infraRes = await fetch(infraUrl);
+                const infraData = await infraRes.json();
+
+                if (window.currentRenderId !== renderId) return;
+                if (!infraData.features || !infraData.features.length) return;
+
+                const roadPoints = infraData.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                const secId = infraData.features[0].properties.section_part_id;
+
+                const kmUrl = WFS_BASE + '?service=WFS&version=1.1.0&request=GetFeature&typeName=roadnet:section_km&CQL_FILTER=section_part_id=' + secId + '&outputFormat=application/json';
+                const kmRes = await fetch(kmUrl);
+                const kmData = await kmRes.json();
+
+                if (window.currentRenderId !== renderId) return;
+                if (!kmData.features || !kmData.features.length) return;
+
+                const allMS = kmData.features.map(f => ({
+                    km: parseKM(f.properties.km),
+                    label: f.properties.km,
+                    coords: [f.geometry.coordinates[1], f.geometry.coordinates[0]]
+                })).sort((a, b) => a.km - b.km);
+
+                if (isNaN(startCoords[0]) || isNaN(startCoords[1]) || isNaN(stopCoords[0]) || isNaN(stopCoords[1])) return;
+
+                const idxStart = findNearest(startCoords, roadPoints);
+                const idxEnd = findNearest(stopCoords, roadPoints);
+
+                let taskCurve = roadPoints.slice(Math.min(idxStart, idxEnd), Math.max(idxStart, idxEnd) + 1);
+                taskCurve.unshift(startCoords);
+                taskCurve.push(stopCoords);
+
+                function getMilestoneRangeStr(target, milestones) {
+                    if (milestones.length <= 1) return milestones[0] ? milestones[0].label : 'ไม่ทราบ';
+                    let dists = milestones.map(m => {
+                        return { m: m, d: Math.sqrt(Math.pow(m.coords[0] - target[0], 2) + Math.pow(m.coords[1] - target[1], 2)) };
+                    });
+                    dists.sort((a, b) => a.d - b.d);
+                    let m1 = dists[0].m;
+                    let m2 = dists[1].m;
+                    let first = m1.km < m2.km ? m1 : m2;
+                    let second = m1.km < m2.km ? m2 : m1;
+                    return 'กม.ที่ ' + first.label + ' - ' + second.label;
+                }
+
+                const startRangeStr = getMilestoneRangeStr(startCoords, allMS);
+                const stopRangeStr = getMilestoneRangeStr(stopCoords, allMS);
+
+                const startEl = document.getElementById('start-ms-' + taskData.Task_Code + '-' + renderId);
+                if (startEl) startEl.innerText = startRangeStr;
+                const endEl = document.getElementById('end-ms-' + taskData.Task_Code + '-' + renderId);
+                if (endEl) endEl.innerText = stopRangeStr;
+
+                if (taskCurve.length > 0) {
+                    const startPoint = taskCurve[0];
+                    const endPoint = taskCurve[taskCurve.length - 1];
+
+                    if (window.currentRenderId !== renderId) return;
+
+                    // Create Custom DivIcon styles for text labels
+                    const createLabelIcon = (text) => {
+                        return L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 21 21" style="position:absolute; left:-8px; top:-16px;">
+                                      <path fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5.5 9.224V15.5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9.224a2 2 0 0 0-.464-1.28l-3.768-4.522a1 1 0 0 0-1.536 0L5.964 7.944a2 2 0 0 0-.464 1.28"/>
+                                   </svg>
+                                   <div style="position:absolute; left: 8px; top:-16px; padding: 1px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; color: black; white-space: nowrap; border: 1px solid #777; background-color: rgba(255,255,255,0.9);opacity:0.4;">
+                                      ${text}
+                                   </div>`,
+                            iconSize: [0, 0], // use HTML size
+                            iconAnchor: [0, 0] // center bottom
+                        });
+                    };
+
+                    let routeLayerGroup = L.featureGroup();
+
+                    allMS.forEach(ms => {
+                        L.marker(ms.coords, { icon: createLabelIcon(ms.label) })
+                            .addTo(routeLayerGroup)
+                            .bindPopup('<b>ป้าย กม. ที่ ' + ms.label + '</b><br>ทางหลวง: ' + highway);
+                    });
+
+                    // 1. Draw the "Border" (Bottom Layer)
+                    L.polyline(taskCurve, {
+                        color: '#000000', // Black Border
+                        weight: 10,       // Thicker than main line
+                        opacity: 1,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    }).addTo(routeLayerGroup);
+
+                    // 2. Draw the "Main Line" (Top Layer)
+                    L.polyline(taskCurve, {
+                        color: taskColor,
+                        weight: 6,
+                        opacity: 1,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    }).addTo(routeLayerGroup)
+                        .bindPopup('<b>รหัสงาน (Task): ' + taskData.Task_Code + '</b><br>ทางหลวง: ' + highway + '<br>จุดเริ่มต้น: ' + startRangeStr + '<br>จุดสิ้นสุด: ' + stopRangeStr + '<br>ปี ' + taskData.Year);
+
+                    routeLayerGroup.addTo(window.taskPolylinesLayer);
+                    window.taskRouteLayers[taskData.Task_Code] = routeLayerGroup;
+                }
+
+            } catch (e) {
+            }
+        }
+
+        window.toggleSidebar = function () {
+            const container = document.getElementById('layoutContainer');
+            const pcBtn = document.getElementById('pcBtn');
+            const mobBtn = document.getElementById('mobileBtn');
+
+            container.classList.toggle('collapsed');
+            const isCollapsed = container.classList.contains('collapsed');
+
+            const iconLeft = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M11.8 13H15q.425 0 .713-.288T16 12t-.288-.712T15 11h-3.2l.9-.9q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-2.6 2.6q-.3.3-.3.7t.3.7l2.6 2.6q.275.275.7.275t.7-.275t.275-.7t-.275-.7zm.2 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
+            const iconRight = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m.2-9l-.9.9q-.275.275-.275.7t.275.7t.7.275t.7-.275l2.6-2.6q.3-.3.3-.7t-.3-.7l-2.6-2.6q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l.9.9H9q-.425 0-.712.288T8 12t.288.713T9 13z"/></sv' + 'g>';
+            const iconUp = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M11 11.8V15q0 .425.288.713T12 16t.713-.288T13 15v-3.2l.9.9q.275.275.7.275t.7-.275t.275-.7t-.275-.7l-2.6-2.6q-.3-.3-.7-.3t-.7.3l-2.6 2.6q-.275.275-.275.7t.275.7t.7.275t.7-.275zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
+            const iconDown = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m11 12.2l-.9-.9q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l2.6 2.6q.3.3.7.3t.7-.3l2.6-2.6q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-.9.9V9q0-.425-.288-.712T12 8t-.712.288T11 9zm1 9.8q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
+
+            if (window.innerWidth > 820) {
+                pcBtn.innerHTML = isCollapsed ? `${iconLeft}&nbsp;รายการบำรุง` : `${iconRight}&nbsp;รายการบำรุง`;
+            } else {
+                mobBtn.innerHTML = isCollapsed ? `${iconUp}&nbsp;รายการบำรุง` : `${iconDown}&nbsp;รายการบำรุง`;
+            }
+
+            setTimeout(() => {
+                window.mapInstance.invalidateSize()
+            }, 450)
+        };
+
+        window.focusMapOnTask = function (taskCode) {
+            const layer = window.taskRouteLayers[taskCode];
+            if (layer && window.mapInstance) {
+                window.mapInstance.fitBounds(layer.getBounds(), { padding: [50, 50], maxZoom: 16 });
+
+                // On mobile, automatically collapse sidebar to see the map
+                if (window.innerWidth <= 820) {
+                    const container = document.getElementById('layoutContainer');
+                    if (!container.classList.contains('collapsed')) {
+                        toggleSidebar();
+                    }
+                }
+            }
+        };
+
+        window.resetMapBounds = function () {
+            if (window.taskPolylinesLayer && window.taskPolylinesLayer.getLayers().length > 0) {
+                window.mapInstance.fitBounds(window.taskPolylinesLayer.getBounds(), { padding: [50, 50] });
+            }
+        };
+
+        let colorMap = {}; // Will hold { "2564": "#C1E1C1", ... }
+        let allMapTasks = []; // Holds the raw un-filtered tasks
+
+        // Filter UI Elements
+        const mapSearchInput = document.getElementById('mapSearch');
+        const mapSortSelect = document.getElementById('mapSortSelect');
+        const mapMinYear = document.getElementById('mapMinYear');
+        const mapMaxYear = document.getElementById('mapMaxYear');
+
+        window.reloadMapData = function () {
+            const btn = document.getElementById('mapReloadBtn');
+            const countText = document.getElementById('taskCountText');
+
+            // Set loading state
+            btn.style.backgroundColor = '#6c757d';
+            btn.disabled = true;
+            btn.style.cursor = 'wait';
+            countText.innerHTML = 'กำลังโหลดข้อมูล...';
+            document.getElementById('taskList').innerHTML = '';
+            window.taskPolylinesLayer.clearLayers();
+            window.taskRouteLayers = {}; // Reset hashmap
+
+            window.google.script.run
+                .withSuccessHandler(colors => {
+                    onColorsLoaded(colors);
+                    // Reset button state
+                    btn.style.backgroundColor = 'var(--primary-color)';
+                    btn.disabled = false;
+                    btn.style.cursor = 'pointer';
+                })
+                .withFailureHandler(e => {
+                    window.customAlert(e.message);
+                    btn.style.backgroundColor = 'var(--primary-color)';
+                    btn.disabled = false;
+                    btn.style.cursor = 'pointer';
+                    countText.innerHTML = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+                })
+                .getYearColors();
+        };
+
+        function onColorsLoaded(colors) {
+            colors.forEach(item => {
+                colorMap[item.Year] = item.Color;
+            });
+
+            window.google.script.run.withSuccessHandler(function (tasks) {
+                allMapTasks = tasks || [];
+
+                const years = allMapTasks.map(d => parseInt(d.Year)).filter(y => !isNaN(y));
+                if (years.length > 0) {
+                    mapMinYear.value = Math.min(...years);
+                    mapMaxYear.value = Math.max(...years);
+                }
+
+                renderFilteredTasks();
+            }).getMaintenanceTasks();
+        }
+
+        // Bind event listeners to filters
+        mapSearchInput.addEventListener('input', renderFilteredTasks);
+        mapSortSelect.addEventListener('change', renderFilteredTasks);
+        mapMinYear.addEventListener('input', renderFilteredTasks);
+        mapMaxYear.addEventListener('input', renderFilteredTasks);
+
+        function renderFilteredTasks() {
+            const listContainer = document.getElementById('taskList');
+            const countText = document.getElementById('taskCountText');
+
+            const thisRenderId = ++window.currentRenderId;
+
+            // 1. Get filter values
+            const searchTerm = mapSearchInput.value.toLowerCase().trim();
+            const minStr = mapMinYear.value.trim();
+            const maxStr = mapMaxYear.value.trim();
+            const minYearSelection = minStr === "" ? -Infinity : parseInt(minStr);
+            const maxYearSelection = maxStr === "" ? Infinity : parseInt(maxStr);
+            const sortVal = mapSortSelect.value;
+
+            // 2. Filter logic
+            let filteredTasks = allMapTasks.filter(task => {
+                const taskYear = parseInt(task.Year);
+                const matchesYear = !isNaN(taskYear) && taskYear >= minYearSelection && taskYear <= maxYearSelection;
+                const matchesSearch = searchTerm === "" ||
+                    String(task.Task_Code).toLowerCase().includes(searchTerm) ||
+                    String(task.Highway_Number).toLowerCase().includes(searchTerm) ||
+                    String(task.Adder).toLowerCase().includes(searchTerm);
+
+                return matchesYear && matchesSearch;
+            });
+
+            // 3. Sort logic
+            filteredTasks.sort((a, b) => {
+                if (sortVal === "year_desc") {
+                    return parseInt(b.Year) - parseInt(a.Year); // New to Old
+                } else if (sortVal === "highway_asc") {
+                    return String(a.Highway_Number).localeCompare(String(b.Highway_Number), undefined, { numeric: true });
+                }
+                return 0;
+            });
+
+            // Update count text
+            countText.innerHTML = 'พบข้อมูล <strong>' + filteredTasks.length + '</strong> จากทั้งหมด ' + allMapTasks.length + ' รายการ';
+            listContainer.innerHTML = ''; // Clear existing cards
+
+            if (filteredTasks.length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">ไม่พบรายการที่ตรงกับเงื่อนไข</div>';
+                return;
+            }
+
+            window.taskPolylinesLayer.clearLayers(); // Clear old lines before redraw
+            window.taskRouteLayers = {};
+
+            // 4. Render cards
+            filteredTasks.forEach(task => {
+                const yearColor = colorMap[task.Year] || 'transparent';
+
+                const card = document.createElement('div');
+                card.style.cssText =
+                    'background: white; ' +
+                    'border: 1px solid #eee; ' +
+                    'border-bottom: 5px solid ' + yearColor + '; ' +
+                    'border-radius: 8px; ' +
+                    'padding: 15px; ' +
+                    'box-shadow: 0 2px 4px rgba(0,0,0,0.05); ' +
+                    'transition: transform 0.2s; ' +
+                    'cursor: pointer;';
+
+                card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+                card.onmouseleave = () => card.style.transform = 'translateY(0)';
+
+                card.innerHTML =
+                    '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+                    '<h4 style="margin: 0; color: var(--primary-color);">รหัสงาน: ' + task.Task_Code + '</h4>' +
+                    '<span style="background: ' + (yearColor !== 'transparent' ? yearColor : '#eef2f6') + '; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: ' + (yearColor !== 'transparent' ? '#333' : 'var(--primary-color)') + '; font-weight: 500;">ปี ' + task.Year + '</span>' +
+                    '</div>' +
+                    '<div style="font-size: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; color: #444;">' +
+                    '<div>ทางหลวง: <strong>' + task.Highway_Number + '</strong></div>' +
+                    '<div>ระยะทาง: <strong>' + task.Distance + ' กม.</strong></div>' +
+                    '<div>พิกัดเริ่มต้น: <strong id="start-ms-' + task.Task_Code + '-' + thisRenderId + '">กำลังคำนวณ... <span style="font-weight:normal;font-size:12px;color:#888;">(' + task.Milestone_Start_Lat + ', ' + task.Milestone_Start_Lng + ')</span></strong></div>' +
+                    '<div>พิกัดสิ้นสุด: <strong id="end-ms-' + task.Task_Code + '-' + thisRenderId + '">กำลังคำนวณ... <span style="font-weight:normal;font-size:12px;color:#888;">(' + task.Milestone_End_Lat + ', ' + task.Milestone_End_Lng + ')</span></strong></div>' +
+                    '<div style="grid-column: span 2; padding-top: 8px; border-top: 1px dashed #eee;">' +
+                    'งบประมาณ: <strong>' + task.Cost + '</strong> ล้านบาท' +
+                    '</div>' +
+                    '</div>';
+
+                listContainer.appendChild(card);
+            });
+
+            // 5. Draw API lines async
+            const drawPromises = filteredTasks.map(task => processAndDrawTask(task, thisRenderId));
+            Promise.all(drawPromises).then(() => {
+                if (window.currentRenderId === thisRenderId && window.taskPolylinesLayer.getLayers().length > 0) {
+                    // Focus the map bounds around the newly drawn routes
+                    window.mapInstance.fitBounds(window.taskPolylinesLayer.getBounds(), { padding: [50, 50] });
+                }
+            });
+        }
+
+        // Start by fetching the initial data
+        window.reloadMapData();
+    })();
+</script>

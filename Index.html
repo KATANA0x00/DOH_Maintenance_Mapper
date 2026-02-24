@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <base target="_top" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        :root {
+            --background: #faf9f6;
+            --primary-color: #1762a5;
+            --primary-color-hover: #054d8b;
+            --nav-height: 60px;
+            --font-family: 'Prompt', sans-serif;
+            --font-size-base: 16px;
+            --font-size-lg: 20px;
+            --font-size-xl: 24px;
+        }
+
+        * {
+            font-family: var(--font-family);
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-size: var(--font-size-base);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: grid;
+            grid-template-rows: var(--nav-height) 1fr;
+            background-color: var(--background);
+        }
+
+        .nav {
+            width: 100%;
+            height: var(--nav-height);
+            background-color: var(--primary-color);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-brand {
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+            margin-right: 40px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 400;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            opacity: 1;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .account-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            padding: 6px 15px;
+            font-size: 14px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .account-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            height: 100%;
+            width: 100%;
+            transition: grid-template-columns 0.4s linear;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container.collapsed {
+            grid-template-columns: 1fr 0px;
+        }
+
+        #map {
+            background-color: #e5e5e5;
+            z-index: 10;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .taskView {
+            background-color: white;
+            position: relative;
+            transition: all 0.4s linear;
+            min-width: 0;
+            overflow: visible;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .taskView-content {
+            flex-grow: 1;
+            height: 0;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            transition: opacity 0.2s linear;
+        }
+
+        .container.collapsed .taskView {
+            border-left: none;
+        }
+
+        .container.collapsed .taskView-content {
+            opacity: 0;
+            pointer-events: none;
+            padding: 0;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            z-index: 2000;
+            background: white;
+            border: none;
+            cursor: pointer;
+            padding: 20px 30px;
+            box-shadow: -2px 2px 0px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
+            font-size: var(--font-size-base);
+            transition: background 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            color: white;
+            background-color: var(--primary-color);
+        }
+
+        .toggle-btn:hover {
+            background: var(--primary-color-hover);
+        }
+
+        #pcBtn {
+            top: 10px;
+            left: 0;
+            transform: translateX(-100%);
+            border-radius: 6px 0 0 6px;
+            border-right: none;
+        }
+
+        #mobileBtn {
+            display: none;
+        }
+
+        @media (max-width: 820px) {
+            :root {
+                --nav-height: 80px;
+            }
+
+            #pcBtn {
+                display: none;
+            }
+
+            #mobileBtn {
+                display: block;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                transition: grid-template-rows 0.4s linear;
+                height: 100%;
+            }
+
+            .container.collapsed {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 0px;
+            }
+
+            .taskView {
+                order: 2;
+                border-left: none;
+                border-top: 1px solid #ddd;
+                min-height: 0;
+            }
+
+            .container.collapsed .taskView {
+                border-top: none;
+            }
+
+            #mobileBtn {
+                display: flex;
+                top: 0;
+                left: 10px;
+                transform: translateY(-100%);
+                border-radius: 6px 6px 0 0;
+                border-bottom: none;
+                box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            #map {
+                order: 1;
+                min-height: 0;
+                height: 100%;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: var(--nav-height);
+                left: 0;
+                width: 100%;
+                background-color: var(--primary-color);
+                padding: 15px 20px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 3000;
+                box-sizing: border-box;
+                gap: 15px;
+            }
+
+            .nav-links.show {
+                display: flex;
+            }
+        }
+
+        /* Custom Alert & Confirm Modals */
+        .global-modal-overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+
+        .global-modal-box {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            font-family: var(--font-family);
+        }
+
+        .global-modal-message {
+            margin-bottom: 24px;
+            font-size: 16px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .global-modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .global-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .global-btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .global-btn-primary:hover {
+            background-color: var(--primary-color-hover);
+        }
+
+        .global-btn-secondary {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .global-btn-secondary:hover {
+            background-color: #dde0e3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <div class="nav-brand">DOH Mapper</div>
+        <div class="nav-links">
+            <a style="cursor: pointer;" id="navMapBtn" class="active" onclick="loadPage('Map');">มุมมองแผนที่</a>
+            <? if (isEditor) { ?>
+            <a style="cursor: pointer;" id="navDataBtn" onclick="loadPage('Data');">แก้ไขข้อมูล</a>
+            <? } ?>
+        </div>
+        <div class="nav-right">
+            <a class="account-btn" href="https://accounts.google.com/AccountChooser?continue=<?= scriptUrl ?>"
+                target="_top">เปลี่ยนบัญชี</a>
+            <button class="hamburger" onclick="document.querySelector('.nav-links').classList.toggle('show')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M3 18v-2h18v2zm0-5v-2h18v2zm0-5V6h18v2z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- GAS Native Includes -->
+    <div id="layoutContainer" class="container">
+        <div id="viewMap" style="display: none;">
+            <?!= include('Map') ?>
+        </div>
+        <? if (isEditor) { ?>
+        <div id="viewData" style="display: none;">
+            <?!= include('Data') ?>
+        </div>
+        <? } ?>
+    </div>
+
+    <script>
+        function loadPage(pageName) {
+            document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
+            if (pageName === 'Map') document.getElementById('navMapBtn').classList.add('active');
+            if (pageName === 'Data' && document.getElementById('navDataBtn')) {
+                document.getElementById('navDataBtn').classList.add('active');
+            }
+
+            // Simply toggle display: contents to let them act as direct grid children
+            document.getElementById('viewMap').style.display = (pageName === 'Map') ? 'contents' : 'none';
+
+            const viewDataEl = document.getElementById('viewData');
+            if (viewDataEl) {
+                viewDataEl.style.display = (pageName === 'Data') ? 'contents' : 'none';
+            }
+
+            // Re-invalidate map if shown
+            if (pageName === 'Map') {
+                if (window.mapInstance) {
+                    setTimeout(() => window.mapInstance.invalidateSize(), 300);
+                }
+                if (window.reloadMapData) {
+                    window.reloadMapData();
+                }
+            }
+
+            document.querySelector('.nav-links').classList.remove('show');
+        }
+
+        // Automatically load the Map page on startup.
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPage('Map');
+        });
+
+        // Global Alert functions
+        window.customAlert = function (message) {
+            document.getElementById('customAlertMessage').innerText = message;
+            document.getElementById('customAlertOverlay').style.display = 'flex';
+        };
+
+        window.closeCustomAlert = function () {
+            document.getElementById('customAlertOverlay').style.display = 'none';
+        };
+
+        // Global Confirm functions
+        let confirmCallback = null;
+        window.customConfirm = function (message, onConfirm) {
+            document.getElementById('customConfirmMessage').innerText = message;
+            confirmCallback = onConfirm;
+            document.getElementById('customConfirmOverlay').style.display = 'flex';
+        };
+
+        window.closeCustomConfirm = function (result) {
+            document.getElementById('customConfirmOverlay').style.display = 'none';
+            if (result && confirmCallback) {
+                confirmCallback();
+            }
+            confirmCallback = null;
+        };
+    </script>
+
+    <!-- Custom Alert HTML -->
+    <div id="customAlertOverlay" class="global-modal-overlay">
+        <div class="global-modal-box">
+            <div id="customAlertMessage" class="global-modal-message"></div>
+            <div class="global-modal-buttons">
+                <button class="global-btn global-btn-primary" onclick="window.closeCustomAlert()">ตกลง (OK)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm HTML -->
+    <div id="customConfirmOverlay" class="global-modal-overlay">
+        <div class="global-modal-box">
+            <div id="customConfirmMessage" class="global-modal-message"></div>
+            <div class="global-modal-buttons">
+                <button class="global-btn global-btn-secondary" onclick="window.closeCustomConfirm(false)">ยกเลิก
+                    (Cancel)</button>
+                <button class="global-btn global-btn-primary" onclick="window.closeCustomConfirm(true)">ยืนยัน
+                    (Confirm)</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
