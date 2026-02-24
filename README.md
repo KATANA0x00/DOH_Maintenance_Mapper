@@ -23,7 +23,7 @@ Follow these steps to deploy this application to your own Google Drive.
 ### 1. Prepare the Database (Google Sheet)
 1. Go to [docs.google.com](https://www.docs.google.com)
 2. Make sure to login with your admin account.
-3. Create a new Google Spreadsheet. ![sheet_icon](./assets/sheet_icon.png)
+3. Create a new Google Spreadsheet. ![sheet_icon](./assets/sheet_start.png)
 4. Create two sheets exactly named:
    - `Maintenance`
    - `YearColor`
