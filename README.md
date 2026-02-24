@@ -52,7 +52,7 @@ Follow these steps to deploy this application to your own Google Drive.
    - `Data.html` (HTML)
    - `Map.html` (HTML)
    > [!TIP]
-   > Open by click file name of code file in this repository ![file](./assets/file.png) then Select all and copy or press copy button ![copy](./assets/copy.png)
+   > Open by click file name of code file in this 
 
 3. Save the project **(Ctrl+s)** or  ![save_btn](./assets/save_btn.png) .
 
