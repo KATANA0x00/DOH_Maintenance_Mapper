@@ -21,7 +21,7 @@ It uses a Google Spreadsheet as the database to store task assignments, coordina
 Follow these steps to deploy this application to your own Google Drive.
 
 ### 1. Prepare the Database (Google Sheet)
-1. Go to doc.google.com
+1. Go to [docs.google.com](https://www.docs.google.com)
 1. Create a new Google Spreadsheet.
 2. Create two sheets exactly named:
    - `Maintenance`
