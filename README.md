@@ -61,13 +61,18 @@ The "Edit Data" (แก้ไขข้อมูล) tab is always visible in the
 3. To limit who can edit the map data:
    - Make sure **General access** is set to **Restricted** or **Viewer**.
    - Explicitly add the email addresses of the staff members who need to edit the data and set their role to **Editor**.
+
 > [!NOTE]
 > If a Viewer tries to save or delete data in the app, Google will automatically block them and show a "Permission Denied" error popup.
 
-| Permission | access in web application |
+<br/>
+
+| Permission | Access in Web Application |
 | :--- | :--- |
 | Email who's Editor | Add, Edit, Delete |
 | Email who's Viewer | View |
+
+<br/>
 
 ### 4. Deploy as a Web App
 1. In the Apps Script editor, click the **Deploy** button in the top right, then **New deployment**.<br/>![deploy_nav](./assets/nav_deploy.png)
