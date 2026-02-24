@@ -16,7 +16,7 @@ It uses a Google Spreadsheet as the database to store task assignments, coordina
 Follow these steps to deploy this application to your own Google Drive.
 
 ### 1. Prepare the Database (Google Sheet)
-1. Go to [docs.google.com](https://www.docs.google.com)
+1. Go to [docs.google.com](https://www.docs.google.com/spreadsheets)
 2. Make sure to login with your admin account.
 3. Create a new Google Spreadsheet.<br/>![sheet_icon](./assets/sheet_start.png)
 4. Create two sheets exactly named:<br/>![sheet_icon](./assets/sheet_sub_name.png)
@@ -51,7 +51,11 @@ Follow these steps to deploy this application to your own Google Drive.
    - `Index.html` (HTML)
    - `Data.html` (HTML)
    - `Map.html` (HTML)
-3. Save the project **(Ctrl+s)**.
+   > [!TIP]<br/>
+   > 2.1 Open by click file name of code file in this repository ![file](./assets/file.png) .<br/>
+   > 2.2 Select all and copy or press copy button ![copy](./assets/copy.png) .
+
+3. Save the project **(Ctrl+s)** or  ![save_btn](./assets/save_btn.png) .
 
 ### 3. Configure Access Control (Google Sheet Sharing)
 The "Edit Data" (แก้ไขข้อมูล) tab is always visible in the app. However, **actual edit access is strictly controlled by your Google Spreadsheet sharing settings.**
@@ -84,6 +88,9 @@ The "Edit Data" (แก้ไขข้อมูล) tab is always visible in the
      - **Option B (Organization Only):** Choose **"Anyone within [Your Organization]"**. Only internal staff can open the link.
 4. Click **Deploy** and authorize the permissions when prompted.
 5. Copy the generated Web App URL.
+
+> [!IMPORTANT]
+> API to get highway vector data and milestone coordinate is from Thailand's Department of Highways Database, If you want to use this application for other country, you need to replace the API with your country's API.
 
 ---
 
