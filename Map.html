@@ -1,13 +1,55 @@
+<style>
+    .filter-select-data {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .filter-select-data-year {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+    @media (max-width: 820px) {
+        .filter-select-data {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .filter-select-data-year {
+            grid-column: span 2;
+        }
+    }
+
+    .dropdown-item {
+        display: block;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        color: #444;
+        transition: background-color 0.2s;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+</style>
+<script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
 <div id="map"></div>
 <div class="taskView">
     <button class="toggle-btn" id="pcBtn" onclick="toggleSidebar()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
             <path fill="currentColor"
                 d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m.2-9l-.9.9q-.275.275-.275.7t.275.7t.7.275t.7-.275l2.6-2.6q.3-.3.3-.7t-.3-.7l-2.6-2.6q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l.9.9H9q-.425 0-.712.288T8 12t.288.713T9 13z" />
         </svg>&nbsp;รายการบำรุง
     </button>
     <button class="toggle-btn" id="mobileBtn" onclick="toggleSidebar()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
             <path fill="currentColor"
                 d="m11 12.2l-.9-.9q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l2.6 2.6q.3.3.7.3t.7-.3l2.6-2.6q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-.9.9V9q0-.425-.288-.712T12 8t-.712.288T11 9zm1 9.8q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22" />
         </svg>&nbsp;รายการบำรุง
@@ -28,20 +70,80 @@
                     </svg>
                 </button>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <select id="mapSortSelect"
-                    style="padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; outline: none; background: white; color: #495057; box-sizing: border-box;">
-                    <option value="year_desc">เรียงตามปี (ใหม่ - เก่า)</option>
-                    <option value="highway_asc">เรียงตามรหัสทางหลวง</option>
-                </select>
+            <div class="filter-select-data">
+                <div class="custom-dropdown" id="sortDropdownContainer" style="position: relative;">
+                    <input type="hidden" id="mapSortSelect" value="year_desc">
+                    <button type="button" id="mapSortSelectBtn"
+                        onclick="document.getElementById('sortDropdownMenu').style.display = document.getElementById('sortDropdownMenu').style.display === 'block' ? 'none' : 'block'"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: white; text-align: left; cursor: pointer; color: #495057; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-size: 14px; gap: 5px;">
+                        <span id="mapSortSelectText"
+                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เรียงตามปี (ใหม่ -
+                            เก่า)</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                            <path fill="#495057" d="m7 10l5 5l5-5z" />
+                        </svg>
+                    </button>
+                    <div id="sortDropdownMenu"
+                        style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 14px;">
+                        <div class="dropdown-item" onclick="setSortOption('year_desc', 'เรียงตามปี (ใหม่ - เก่า)')">
+                            เรียงตามปี (ใหม่ - เก่า)
+                        </div>
+                        <div class="dropdown-item" onclick="setSortOption('highway_asc', 'เรียงตามรหัสทางหลวง')">
+                            เรียงตามรหัสทางหลวง
+                        </div>
+                    </div>
+                </div>
 
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px;">
-                    <span style="font-weight: 500; color: #495057; font-size: 14px;">ปี:</span>
+                <div class="custom-dropdown" style="position: relative;">
+                    <button type="button"
+                        onclick="document.getElementById('layerDropdownMenu').style.display = document.getElementById('layerDropdownMenu').style.display === 'block' ? 'none' : 'block'"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: white; text-align: left; cursor: pointer; color: #495057; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-size: 14px; gap: 5px;">
+                        <span
+                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เลือกแสดงหมุดตำแหน่ง</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="m7 10l5 5l5-5z" />
+                        </svg>
+                    </button>
+                    <div id="layerDropdownMenu"
+                        style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; z-index: 1000; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 14px;">
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerToggleTask" checked
+                                onchange="toggleMapLayer('task', this.checked)"> หลักกิโลเมตร
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerToggleGeneral"
+                                onchange="toggleMapLayer('general', this.checked)"> หมุดทั่วไป
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerToggleLamp" onchange="toggleMapLayer('lamp', this.checked)">
+                            เสาไฟฟ้า
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerToggleBuilding"
+                                onchange="toggleMapLayer('building', this.checked)"> อาคาร
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerToggleGas" onchange="toggleMapLayer('gas', this.checked)">
+                            ปั๊มน้ำมัน
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerToggleElec" onchange="toggleMapLayer('elec', this.checked)">
+                            ระบบไฟฟ้า
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerTogglePark" onchange="toggleMapLayer('park', this.checked)">
+                            จุดจอดรถ
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-select-data-year">
+                    <span style="font-weight: 500; color: #495057; font-size: 14px; white-space: nowrap;">ปี:</span>
                     <input type="number" id="mapMinYear" placeholder="ตั้งแต่"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 40%; outline: none;">
+                        style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; box-sizing: border-box; font-size: 14px;">
                     <span style="color: #6c757d;">-</span>
                     <input type="number" id="mapMaxYear" placeholder="ถึง"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 40%; outline: none;">
+                        style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; box-sizing: border-box; font-size: 14px;">
                 </div>
             </div>
         </div>
@@ -79,7 +181,68 @@
         };
         resetBoundsControl.addTo(window.mapInstance);
 
-        window.taskPolylinesLayer = L.featureGroup().addTo(window.mapInstance);
+        window.taskPolylinesLayer = L.featureGroup().addTo(window.mapInstance); // Default ON
+        window.markerLayerGeneral = L.featureGroup(); // Default OFF
+        window.markerLayerLamp = L.featureGroup(); // Default OFF
+        window.markerLayerBuilding = L.featureGroup(); // Default OFF
+        window.markerLayerGas = L.featureGroup(); // Default OFF
+        window.markerLayerElec = L.featureGroup(); // Default OFF
+        window.markerLayerPark = L.featureGroup(); // Default OFF
+
+        // Layer handler
+        window.toggleMapLayer = function (layerName, isChecked) {
+            let targetLayer;
+            switch (layerName) {
+                case 'task': targetLayer = window.taskPolylinesLayer; break;
+                case 'general': targetLayer = window.markerLayerGeneral; break;
+                case 'lamp': targetLayer = window.markerLayerLamp; break;
+                case 'building': targetLayer = window.markerLayerBuilding; break;
+                case 'gas': targetLayer = window.markerLayerGas; break;
+                case 'elec': targetLayer = window.markerLayerElec; break;
+                case 'park': targetLayer = window.markerLayerPark; break;
+            }
+            if (targetLayer) {
+                if (isChecked) {
+                    window.mapInstance.addLayer(targetLayer);
+                } else {
+                    window.mapInstance.removeLayer(targetLayer);
+                }
+            }
+        };
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdowns = document.querySelectorAll('.custom-dropdown');
+            let clickedInside = false;
+            dropdowns.forEach(dropdown => {
+                if (dropdown.contains(event.target)) {
+                    clickedInside = true;
+                }
+            });
+
+            if (!clickedInside) {
+                const layerMenu = document.getElementById('layerDropdownMenu');
+                if (layerMenu) layerMenu.style.display = 'none';
+                const sortMenu = document.getElementById('sortDropdownMenu');
+                if (sortMenu) sortMenu.style.display = 'none';
+            }
+        });
+
+        window.setSortOption = function (value, text) {
+            document.getElementById('mapSortSelect').value = value;
+            document.getElementById('mapSortSelectText').innerText = text;
+            document.getElementById('sortDropdownMenu').style.display = 'none';
+
+            // Trigger the existing logic that listens to the select change, or call it directly:
+            if (typeof renderFilteredTasks === 'function') {
+                renderFilteredTasks();
+            } else {
+                // In case it's not globally available at this point, trigger a change event
+                const event = new Event('change');
+                document.getElementById('mapSortSelect').dispatchEvent(event);
+            }
+        };
+
         window.taskRouteLayers = {}; // Store references to individual feature groups by Task_Code
 
         const WFS_BASE = "https://roadnet3.doh.go.th/geoserver/wfs";
@@ -192,7 +355,7 @@
                             html: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 21 21" style="position:absolute; left:-8px; top:-16px;">
                                       <path fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5.5 9.224V15.5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9.224a2 2 0 0 0-.464-1.28l-3.768-4.522a1 1 0 0 0-1.536 0L5.964 7.944a2 2 0 0 0-.464 1.28"/>
                                    </svg>
-                                   <div style="position:absolute; left: 8px; top:-16px; padding: 1px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; color: black; white-space: nowrap; border: 1px solid #777; background-color: rgba(255,255,255,0.9);opacity:0.4;">
+                                   <div style="position:absolute; left: 8px; top:-16px; padding: 1px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; color: black; white-space: nowrap; border: 1px solid #777; background-color: rgba(255,255,255,0.9);opacity:0.5;">
                                       ${text}
                                    </div>`,
                             iconSize: [0, 0], // use HTML size
@@ -243,10 +406,10 @@
             container.classList.toggle('collapsed');
             const isCollapsed = container.classList.contains('collapsed');
 
-            const iconLeft = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M11.8 13H15q.425 0 .713-.288T16 12t-.288-.712T15 11h-3.2l.9-.9q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-2.6 2.6q-.3.3-.3.7t.3.7l2.6 2.6q.275.275.7.275t.7-.275t.275-.7t-.275-.7zm.2 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
-            const iconRight = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m.2-9l-.9.9q-.275.275-.275.7t.275.7t.7.275t.7-.275l2.6-2.6q.3-.3.3-.7t-.3-.7l-2.6-2.6q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l.9.9H9q-.425 0-.712.288T8 12t.288.713T9 13z"/></sv' + 'g>';
-            const iconUp = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M11 11.8V15q0 .425.288.713T12 16t.713-.288T13 15v-3.2l.9.9q.275.275.7.275t.7-.275t.275-.7t-.275-.7l-2.6-2.6q-.3-.3-.7-.3t-.7.3l-2.6 2.6q-.275.275-.275.7t.275.7t.7.275t.7-.275zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
-            const iconDown = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="m11 12.2l-.9-.9q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l2.6 2.6q.3.3.7.3t.7-.3l2.6-2.6q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-.9.9V9q0-.425-.288-.712T12 8t-.712.288T11 9zm1 9.8q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
+            const iconLeft = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11.8 13H15q.425 0 .713-.288T16 12t-.288-.712T15 11h-3.2l.9-.9q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-2.6 2.6q-.3.3-.3.7t.3.7l2.6 2.6q.275.275.7.275t.7-.275t.275-.7t-.275-.7zm.2 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
+            const iconRight = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m.2-9l-.9.9q-.275.275-.275.7t.275.7t.7.275t.7-.275l2.6-2.6q.3-.3.3-.7t-.3-.7l-2.6-2.6q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l.9.9H9q-.425 0-.712.288T8 12t.288.713T9 13z"/></sv' + 'g>';
+            const iconUp = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 11.8V15q0 .425.288.713T12 16t.713-.288T13 15v-3.2l.9.9q.275.275.7.275t.7-.275t.275-.7t-.275-.7l-2.6-2.6q-.3-.3-.7-.3t-.7.3l-2.6 2.6q-.275.275-.275.7t.275.7t.7.275t.7-.275zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
+            const iconDown = '<sv' + 'g xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m11 12.2l-.9-.9q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l2.6 2.6q.3.3.7.3t.7-.3l2.6-2.6q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275l-.9.9V9q0-.425-.288-.712T12 8t-.712.288T11 9zm1 9.8q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></sv' + 'g>';
 
             if (window.innerWidth > 820) {
                 pcBtn.innerHTML = isCollapsed ? `${iconLeft}&nbsp;รายการบำรุง` : `${iconRight}&nbsp;รายการบำรุง`;
@@ -282,6 +445,7 @@
 
         let colorMap = {}; // Will hold { "2564": "#C1E1C1", ... }
         let allMapTasks = []; // Holds the raw un-filtered tasks
+        let allCustomMarkers = []; // Holds the custom markers
 
         // Filter UI Elements
         const mapSearchInput = document.getElementById('mapSearch');
@@ -300,11 +464,23 @@
             countText.innerHTML = 'กำลังโหลดข้อมูล...';
             document.getElementById('taskList').innerHTML = '';
             window.taskPolylinesLayer.clearLayers();
+            window.markerLayerGeneral.clearLayers();
+            window.markerLayerLamp.clearLayers();
+            window.markerLayerBuilding.clearLayers();
+            window.markerLayerGas.clearLayers();
+            window.markerLayerElec.clearLayers();
+            window.markerLayerPark.clearLayers();
             window.taskRouteLayers = {}; // Reset hashmap
 
             window.google.script.run
                 .withSuccessHandler(colors => {
                     onColorsLoaded(colors);
+
+                    window.google.script.run.withSuccessHandler(markers => {
+                        allCustomMarkers = markers || [];
+                        renderCustomMarkers();
+                    }).getCustomMarkers();
+
                     // Reset button state
                     btn.style.backgroundColor = 'var(--primary-color)';
                     btn.disabled = false;
@@ -436,6 +612,55 @@
                     window.mapInstance.fitBounds(window.taskPolylinesLayer.getBounds(), { padding: [50, 50] });
                 }
             });
+        }
+
+        function renderCustomMarkers() {
+            const MAP_SVG = {
+                "material-symbols:location-on-rounded": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.325q-.35 0-.7-.125t-.625-.375Q9.05 19.325 7.8 17.9t-2.087-2.762t-1.275-2.575T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 1.125-.437 2.363t-1.275 2.575T16.2 17.9t-2.875 2.925q-.275.25-.625.375t-.7.125M12 12q.825 0 1.413-.587T14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12"/></svg>',
+                "roentgen:pole-lamp": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16"><path fill="currentColor" d="M10 2.25c-1.003 0-2.014.19-2.695.754c-.997.032-1.828.312-2.408.893C4.278 4.514 4 5.417 4 6.5v3.883l-.947 1.894A.5.5 0 0 0 3 12.5v2a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.053-.223L5 10.383V6.5c0-.917.221-1.514.604-1.896c.324-.325.804-.533 1.502-.588C7.53 5.456 8.77 6.25 10 6.25c1.347 0 2.709-.955 2.994-2.668a.5.5 0 0 0-.14-.435c-.677-.677-1.77-.897-2.854-.897M8.27 4h3.46c-.354.817-1.006 1.25-1.73 1.25S8.624 4.817 8.27 4"/></svg>',
+                "mingcute:home-4-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M13.2 2.65a2 2 0 0 0-2.4 0l-7 5.25A2 2 0 0 0 3 9.5V19a2 2 0 0 0 2 2h3.9a1.1 1.1 0 0 0 1.1-1.1V15a2 2 0 1 1 4 0v4.9a1.1 1.1 0 0 0 1.1 1.1H19a2 2 0 0 0 2-2V9.5a2 2 0 0 0-.8-1.6z"/></g></svg>',
+                "mingcute:gas-station-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><g fill="none" fill-rule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M5 3a2 2 0 0 0-2 2v14a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2v-5h1v2.5a2.5 2.5 0 0 0 5 0v-6.086A2 2 0 0 0 20.414 9l-2.707-2.707a1 1 0 1 0-1.414 1.414l1.1 1.101A1.999 1.999 0 0 0 19 12l.001 4.5a.5.5 0 0 1-1 0V14a2 2 0 0 0-2-2h-1V5a2 2 0 0 0-2-2zm8 7V5H5v5z"/></g></svg>',
+                "mage:electricity-danger-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="m21.855 17.249l-7.61-13.18a2.64 2.64 0 0 0-4.57 0l-7.61 13.19a2.66 2.66 0 0 0 0 2.64a2.6 2.6 0 0 0 1 1c.402.23.857.35 1.32.35h15.22c.463 0 .918-.12 1.32-.35a2.6 2.6 0 0 0 1-1a2.6 2.6 0 0 0 0-2.64zm-6.88-3.18l-3.73 3.72a.7.7 0 0 1-.53.22a.74.74 0 0 1-.53-.22a.75.75 0 0 1 0-1.06l2.45-2.44h-3.16a.75.75 0 0 1-.69-.47a.74.74 0 0 1 .16-.81l3.73-3.73a.75.75 0 0 1 1.06 1.06l-2.45 2.45h3.16a.74.74 0 0 1 .69.46a.76.76 0 0 1-.16.82"/></svg>',
+                "mingcute:parking-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1.5 5H11a2 2 0 0 0-2 2v7a1 1 0 1 0 2 0v-2h2.5a3.5 3.5 0 1 0 0-7m0 2a1.5 1.5 0 0 1 0 3H11V9z"/></g></svg>'
+            };
+
+            allCustomMarkers.forEach(marker => {
+                const lat = parseFloat(marker.Location_Lat);
+                const lng = parseFloat(marker.Location_Lng);
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                const iconSvg = MAP_SVG[marker.Mark] || MAP_SVG["material-symbols:location-on-rounded"];
+                const iconHtml = '<div style="background: white; border-radius: 50%; padding: 2px; border: 2px solid var(--primary-color); box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; box-sizing: border-box; color: var(--primary-color);">' + iconSvg + '</div>';
+
+                const customIcon = L.divIcon({
+                    className: 'custom-map-icon',
+                    html: iconHtml,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11],
+                    popupAnchor: [0, -11]
+                });
+
+                const leafletMarker = L.marker([lat, lng], { icon: customIcon })
+                    .bindPopup('<b>' + marker.Label + '</b>');
+
+                if (marker.Mark === 'roentgen:pole-lamp') {
+                    leafletMarker.addTo(window.markerLayerLamp);
+                } else if (marker.Mark === 'mingcute:home-4-fill') {
+                    leafletMarker.addTo(window.markerLayerBuilding);
+                } else if (marker.Mark === 'mingcute:gas-station-fill') {
+                    leafletMarker.addTo(window.markerLayerGas);
+                } else if (marker.Mark === 'mage:electricity-danger-fill') {
+                    leafletMarker.addTo(window.markerLayerElec);
+                } else if (marker.Mark === 'mingcute:parking-fill') {
+                    leafletMarker.addTo(window.markerLayerPark);
+                } else {
+                    leafletMarker.addTo(window.markerLayerGeneral);
+                }
+            });
+
+            if (window.Iconify) {
+                Iconify.scan();
+            }
         }
 
         // Start by fetching the initial data

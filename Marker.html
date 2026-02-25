@@ -1,0 +1,796 @@
+<style>
+    .controls-panel {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .search-group {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        gap: 15px;
+    }
+
+    .search-input {
+        padding: 10px;
+        border: 2px solid #1762a5;
+        border-radius: 4px;
+        width: 300px;
+        box-sizing: border-box;
+    }
+
+    .add-btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        white-space: nowrap;
+        box-sizing: border-box;
+    }
+
+    .responsive-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        min-width: 800px;
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 820px) {
+        .controls-panel {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .search-group {
+            grid-column: auto;
+            grid-row: auto;
+        }
+
+        .top-controls {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 12px 20px;
+        }
+
+        .table-wrapper {
+            background: transparent;
+            box-shadow: none;
+            overflow-x: hidden;
+        }
+
+        .responsive-table {
+            min-width: 0;
+            background: transparent;
+        }
+
+        .responsive-table,
+        .responsive-table thead,
+        .responsive-table tbody,
+        .responsive-table th,
+        .responsive-table td,
+        .responsive-table tr {
+            display: block;
+        }
+
+        .responsive-table thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+
+        .responsive-table tr {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 15px;
+            row-gap: 10px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .responsive-table td {
+            display: block;
+            border: none;
+            padding: 0 !important;
+            text-align: left !important;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .responsive-table td:before {
+            display: block;
+            content: attr(data-label);
+            font-size: 11px;
+            color: #6c757d;
+            margin-bottom: 3px;
+        }
+
+        .responsive-table td:nth-child(1) {
+            grid-column: span 2;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .responsive-table td:nth-child(1):before {
+            display: none;
+        }
+
+        .responsive-table td:nth-child(2) {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 0 !important;
+            text-align: right !important;
+        }
+
+        .responsive-table td:nth-child(2):before {
+            display: none;
+        }
+
+        .responsive-table td:nth-child(5) {
+            grid-column: span 2;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 4px;
+            padding-top: 12px !important;
+            border-top: 1px solid #eee;
+        }
+
+        .responsive-table td:nth-child(5):before {
+            display: none;
+        }
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        z-index: 3000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        padding-top: 63px;
+        padding-bottom: 3px;
+        box-sizing: border-box;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        max-height: calc(100vh - 150px);
+        overflow-y: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        margin: 5px 0;
+    }
+
+    @media (max-width: 820px) {
+        .modal-overlay {
+            padding-top: 60px;
+            padding-bottom: 0;
+        }
+
+        .modal-content {
+            max-height: calc(100vh - 100px);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--primary-color);
+        font-size: 20px;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .close-btn:hover {
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: #495057;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: var(--primary-color);
+    }
+
+    .data-container {
+        padding: 20px;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        justify-self: center;
+        overflow: hidden;
+    }
+
+    .table-wrapper {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: auto;
+        flex-grow: 1;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .icon-radio-group {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    @media (max-width: 820px) {
+        .icon-radio-group {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .icon-radio-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 5px;
+        cursor: pointer;
+        padding: 10px 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #f8f9fa;
+        transition: all 0.2s;
+        font-size: 13px;
+    }
+
+    .icon-radio-option:hover {
+        background: #e9ecef;
+    }
+
+    .icon-radio-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .icon-radio-option.selected {
+        border-color: var(--primary-color);
+        background: #e7f1ff;
+        font-weight: 500;
+    }
+</style>
+
+<div class="data-container">
+    <div class="top-controls">
+        <div class="controls-panel">
+            <div class="search-group" style="display: flex; gap: 10px;">
+                <input type="text" id="searchMarkerInput" class="search-input"
+                    placeholder="ค้นหาข้อมูล (เช่น ชื่อเรียก)" style="flex: 1;">
+                <button id="markerReloadBtn" onclick="window.loadMarkerData()"
+                    style="background-color: var(--primary-color); color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        style="vertical-align: middle;">
+                        <path fill="currentColor"
+                            d="M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.713T18 6.75V4h2v7h-7V9h4.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.925 0 3.475-1.1T17.65 14h2.1q-.5 2.9-2.75 4.45T12 20" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <button id="addMarkerBtn" class="add-btn">+ เพิ่มหมุด (Add Marker)</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="responsive-table">
+            <thead
+                style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; position: sticky; top: 0; z-index: 1;">
+                <tr>
+                    <th style="padding: 12px 15px; color: #495057; font-weight: 600;">ชื่อเรียก (Label)</th>
+                    <th style="padding: 12px 15px; color: #495057; font-weight: 600;">สัญลักษณ์ (Icon)</th>
+                    <th style="padding: 12px 15px; color: #495057; font-weight: 600;">ละติจูด (Lat)</th>
+                    <th style="padding: 12px 15px; color: #495057; font-weight: 600;">ลองจิจูด (Lng)</th>
+                    <th style="padding: 12px 15px; color: #495057; font-weight: 600; text-align: center;">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody id="markerTableBody">
+                <tr>
+                    <td colspan="5" style="padding: 20px; text-align: center; color: #6c757d;">กำลังโหลดข้อมูล...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add/Edit Marker Modal -->
+    <div id="addMarkerModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalMarkerTitle">เพิ่มข้อมูลหมุดกำหนดเอง</h3>
+                <button class="close-btn" onclick="closeMarkerModal()">×</button>
+            </div>
+
+            <div class="form-group">
+                <label>ชื่อเรียก (Label)</label>
+                <input type="text" id="inputMarkerLabel" placeholder="ระบุชื่อเรียก">
+            </div>
+
+            <div class="form-group">
+                <label>สัญลักษณ์ (Icon)</label>
+                <div class="icon-radio-group">
+                    <label class="icon-radio-option selected" id="iconOpt1">
+                        <input type="radio" name="inputMarkerIcon" value="material-symbols:location-on-rounded" checked
+                            onchange="updateIconSelection()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="currentColor"
+                                d="M12 21.325q-.35 0-.7-.125t-.625-.375Q9.05 19.325 7.8 17.9t-2.087-2.762t-1.275-2.575T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 1.125-.437 2.363t-1.275 2.575T16.2 17.9t-2.875 2.925q-.275.25-.625.375t-.7.125M12 12q.825 0 1.413-.587T14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12" />
+                        </svg>
+                        ทั่วไป
+                    </label>
+                    <label class="icon-radio-option" id="iconOpt2">
+                        <input type="radio" name="inputMarkerIcon" value="roentgen:pole-lamp"
+                            onchange="updateIconSelection()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16">
+                            <path fill="currentColor"
+                                d="M10 2.25c-1.003 0-2.014.19-2.695.754c-.997.032-1.828.312-2.408.893C4.278 4.514 4 5.417 4 6.5v3.883l-.947 1.894A.5.5 0 0 0 3 12.5v2a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.053-.223L5 10.383V6.5c0-.917.221-1.514.604-1.896c.324-.325.804-.533 1.502-.588C7.53 5.456 8.77 6.25 10 6.25c1.347 0 2.709-.955 2.994-2.668a.5.5 0 0 0-.14-.435c-.677-.677-1.77-.897-2.854-.897M8.27 4h3.46c-.354.817-1.006 1.25-1.73 1.25S8.624 4.817 8.27 4" />
+                        </svg>
+                        เสาไฟฟ้า
+                    </label>
+                    <label class="icon-radio-option" id="iconOpt3">
+                        <input type="radio" name="inputMarkerIcon" value="mingcute:home-4-fill"
+                            onchange="updateIconSelection()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <g fill="none">
+                                <path
+                                    d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                                <path fill="currentColor"
+                                    d="M13.2 2.65a2 2 0 0 0-2.4 0l-7 5.25A2 2 0 0 0 3 9.5V19a2 2 0 0 0 2 2h3.9a1.1 1.1 0 0 0 1.1-1.1V15a2 2 0 1 1 4 0v4.9a1.1 1.1 0 0 0 1.1 1.1H19a2 2 0 0 0 2-2V9.5a2 2 0 0 0-.8-1.6z" />
+                            </g>
+                        </svg>
+                        อาคาร
+                    </label>
+                    <label class="icon-radio-option" id="iconOpt4">
+                        <input type="radio" name="inputMarkerIcon" value="mingcute:gas-station-fill"
+                            onchange="updateIconSelection()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <g fill="none" fill-rule="evenodd">
+                                <path
+                                    d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                                <path fill="currentColor"
+                                    d="M5 3a2 2 0 0 0-2 2v14a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2v-5h1v2.5a2.5 2.5 0 0 0 5 0v-6.086A2 2 0 0 0 20.414 9l-2.707-2.707a1 1 0 1 0-1.414 1.414l1.1 1.101A1.999 1.999 0 0 0 19 12l.001 4.5a.5.5 0 0 1-1 0V14a2 2 0 0 0-2-2h-1V5a2 2 0 0 0-2-2zm8 7V5H5v5z" />
+                            </g>
+                        </svg>
+                        ปั๊มน้ำมัน
+                    </label>
+                    <label class="icon-radio-option" id="iconOpt5">
+                        <input type="radio" name="inputMarkerIcon" value="mage:electricity-danger-fill"
+                            onchange="updateIconSelection()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="currentColor"
+                                d="m21.855 17.249l-7.61-13.18a2.64 2.64 0 0 0-4.57 0l-7.61 13.19a2.66 2.66 0 0 0 0 2.64a2.6 2.6 0 0 0 1 1c.402.23.857.35 1.32.35h15.22c.463 0 .918-.12 1.32-.35a2.6 2.6 0 0 0 1-1a2.6 2.6 0 0 0 0-2.64zm-6.88-3.18l-3.73 3.72a.7.7 0 0 1-.53.22a.74.74 0 0 1-.53-.22a.75.75 0 0 1 0-1.06l2.45-2.44h-3.16a.75.75 0 0 1-.69-.47a.74.74 0 0 1 .16-.81l3.73-3.73a.75.75 0 0 1 1.06 1.06l-2.45 2.45h3.16a.74.74 0 0 1 .69.46a.76.76 0 0 1-.16.82" />
+                        </svg>
+                        ระบบไฟฟ้า
+                    </label>
+                    <label class="icon-radio-option" id="iconOpt6">
+                        <input type="radio" name="inputMarkerIcon" value="mingcute:parking-fill"
+                            onchange="updateIconSelection()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <g fill="none">
+                                <path
+                                    d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                                <path fill="currentColor"
+                                    d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1.5 5H11a2 2 0 0 0-2 2v7a1 1 0 1 0 2 0v-2h2.5a3.5 3.5 0 1 0 0-7m0 2a1.5 1.5 0 0 1 0 3H11V9z" />
+                            </g>
+                        </svg>
+                        จุดจอดรถ
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>เลือกพิกัดบนแผนที่ (Pick Coordinates)</label>
+                <div id="modalMarkerMap"
+                    style="height: 250px; background: #eee; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 10px; z-index: 10;">
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <button type="button" onclick="getMarkerDeviceLocation()" title="ใช้ตำแหน่งปัจจุบัน"
+                        style="background: #1762a5; color: white; border: none; width: 32px; height: 32px; padding: 0; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
+                        onmouseover="this.style.backgroundColor='#124b80'"
+                        onmouseout="this.style.backgroundColor='#1762a5'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                            <path fill="currentColor"
+                                d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4s-1.79-4-4-4m8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7s7 3.13 7 7s-3.13 7-7 7" />
+                        </svg>
+                    </button>
+                    <button type="button" onclick="setMarkerLocationFromMap()"
+                        style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">กำหนดพิกัดให้หมุด
+                    </button>
+                </div>
+                <span id="modalMarkerMapStatus" style="font-size: 12px; color: #666;">กำลังโหลดแผนที่...
+                    เลื่อนแผนที่แล้วกดปุ่มเพื่อเลือกตำแหน่ง</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>ละติจูด (Lat)</label>
+                    <input type="number" step="any" id="inputMarkerLat" placeholder="Lat">
+                </div>
+                <div class="form-group">
+                    <label>ลองจิจูด (Lng)</label>
+                    <input type="number" step="any" id="inputMarkerLng" placeholder="Lng">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+                <button type="button" onclick="closeMarkerModal()"
+                    style="background: #e9ecef; color: #495057; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">ยกเลิก</button>
+                <button type="button" id="submitMarkerBtn" onclick="saveMarkerData()"
+                    style="background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: background-color 0.2s;">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        let allMarkers = [];
+        let isEditMode = false;
+        let originalEditLabel = "";
+
+        // Map related variables
+        let markerModalMap = null;
+        let markerModalCenter = null;
+
+        const markerTableBody = document.getElementById('markerTableBody');
+        const searchInput = document.getElementById('searchMarkerInput');
+        const addBtn = document.getElementById('addMarkerBtn');
+
+        window.loadMarkerData = function () {
+            const btn = document.getElementById('markerReloadBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.style.backgroundColor = '#6c757d';
+                btn.style.cursor = 'wait';
+            }
+            markerTableBody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #6c757d;">กำลังโหลดข้อมูล...</td></tr>';
+
+            const enableBtn = () => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.backgroundColor = 'var(--primary-color)';
+                    btn.style.cursor = 'pointer';
+                }
+            };
+
+            google.script.run.withSuccessHandler(function (data) {
+                allMarkers = data || [];
+                renderMarkerTable();
+                enableBtn();
+            }).withFailureHandler((e) => {
+                enableBtn();
+                window.customAlert("โหลดข้อมูลหมุดไม่สำเร็จ: " + e.message);
+            }).getCustomMarkers();
+        };
+
+        function initMarkerPage() {
+            window.loadMarkerData();
+            searchInput.addEventListener('input', renderMarkerTable);
+            addBtn.addEventListener('click', () => openMarkerModal());
+        }
+
+        window.updateIconSelection = function () {
+            document.querySelectorAll('.icon-radio-option').forEach(el => el.classList.remove('selected'));
+            const selectedRadio = document.querySelector('input[name="inputMarkerIcon"]:checked');
+            if (selectedRadio) {
+                selectedRadio.closest('.icon-radio-option').classList.add('selected');
+            }
+        };
+
+        function renderMarkerTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+
+            let filteredData = allMarkers.filter(row => {
+                return searchTerm === "" || String(row.Label).toLowerCase().includes(searchTerm);
+            });
+
+            if (filteredData.length === 0) {
+                markerTableBody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #6c757d;">ไม่พบข้อมูล</td></tr>';
+                return;
+            }
+
+            const MAP_SVG = {
+                "material-symbols:location-on-rounded": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.325q-.35 0-.7-.125t-.625-.375Q9.05 19.325 7.8 17.9t-2.087-2.762t-1.275-2.575T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 1.125-.437 2.363t-1.275 2.575T16.2 17.9t-2.875 2.925q-.275.25-.625.375t-.7.125M12 12q.825 0 1.413-.587T14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12"/></svg>',
+                "roentgen:pole-lamp": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16"><path fill="currentColor" d="M10 2.25c-1.003 0-2.014.19-2.695.754c-.997.032-1.828.312-2.408.893C4.278 4.514 4 5.417 4 6.5v3.883l-.947 1.894A.5.5 0 0 0 3 12.5v2a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.053-.223L5 10.383V6.5c0-.917.221-1.514.604-1.896c.324-.325.804-.533 1.502-.588C7.53 5.456 8.77 6.25 10 6.25c1.347 0 2.709-.955 2.994-2.668a.5.5 0 0 0-.14-.435c-.677-.677-1.77-.897-2.854-.897M8.27 4h3.46c-.354.817-1.006 1.25-1.73 1.25S8.624 4.817 8.27 4"/></svg>',
+                "mingcute:home-4-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M13.2 2.65a2 2 0 0 0-2.4 0l-7 5.25A2 2 0 0 0 3 9.5V19a2 2 0 0 0 2 2h3.9a1.1 1.1 0 0 0 1.1-1.1V15a2 2 0 1 1 4 0v4.9a1.1 1.1 0 0 0 1.1 1.1H19a2 2 0 0 0 2-2V9.5a2 2 0 0 0-.8-1.6z"/></g></svg>',
+                "mingcute:gas-station-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" fill-rule="evenodd"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M5 3a2 2 0 0 0-2 2v14a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2v-5h1v2.5a2.5 2.5 0 0 0 5 0v-6.086A2 2 0 0 0 20.414 9l-2.707-2.707a1 1 0 1 0-1.414 1.414l1.1 1.101A1.999 1.999 0 0 0 19 12l.001 4.5a.5.5 0 0 1-1 0V14a2 2 0 0 0-2-2h-1V5a2 2 0 0 0-2-2zm8 7V5H5v5z"/></g></svg>',
+                "mage:electricity-danger-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m21.855 17.249l-7.61-13.18a2.64 2.64 0 0 0-4.57 0l-7.61 13.19a2.66 2.66 0 0 0 0 2.64a2.6 2.6 0 0 0 1 1c.402.23.857.35 1.32.35h15.22c.463 0 .918-.12 1.32-.35a2.6 2.6 0 0 0 1-1a2.6 2.6 0 0 0 0-2.64zm-6.88-3.18l-3.73 3.72a.7.7 0 0 1-.53.22a.74.74 0 0 1-.53-.22a.75.75 0 0 1 0-1.06l2.45-2.44h-3.16a.75.75 0 0 1-.69-.47a.74.74 0 0 1 .16-.81l3.73-3.73a.75.75 0 0 1 1.06 1.06l-2.45 2.45h3.16a.74.74 0 0 1 .69.46a.76.76 0 0 1-.16.82"/></svg>',
+                "mingcute:parking-fill": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none"><path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1.5 5H11a2 2 0 0 0-2 2v7a1 1 0 1 0 2 0v-2h2.5a3.5 3.5 0 1 0 0-7m0 2a1.5 1.5 0 0 1 0 3H11V9z"/></g></svg>'
+            };
+
+            let html = '';
+            filteredData.forEach(row => {
+                const iconSvg = MAP_SVG[row.Mark] || MAP_SVG["material-symbols:location-on-rounded"];
+                html +=
+                    '<tr style="border-bottom: 1px solid #dee2e6; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor=\'#f1f3f5\'" onmouseout="this.style.backgroundColor=\'transparent\'">' +
+                    '<td data-label="ชื่อเรียก" style="padding: 12px 15px; font-weight: 500;">' + (row.Label || '-') + '</td>' +
+                    '<td data-label="สัญลักษณ์" style="padding: 12px 15px;">' +
+                    '<span style="color: var(--primary-color); display: inline-block; width: 24px; height: 24px;">' + iconSvg + '</span>' +
+                    '</td>' +
+                    '<td data-label="ละติจูด" style="padding: 12px 15px; font-size: 13px;">' + (row.Location_Lat || '-') + '</td>' +
+                    '<td data-label="ลองจิจูด" style="padding: 12px 15px; font-size: 13px;">' + (row.Location_Lng || '-') + '</td>' +
+                    '<td data-label="จัดการ" style="padding: 12px 15px; text-align: center; white-space: nowrap;">' +
+                    '<button onclick="handleMarkerEdit(\'' + row.Label + '\')" style="background-color: #ffc107; color: #212529; border: none; padding: 6px; border-radius: 4px; cursor: pointer; margin-right: 5px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor=\'#e0a800\'" onmouseout="this.style.backgroundColor=\'#ffc107\'">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M5 19h1.425L16.2 9.225L14.775 7.8L5 17.575zm-1 2q-.425 0-.712-.288T3 20v-2.425q0-.4.15-.763t.425-.637L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.437.65T21 6.4q0 .4-.138.763t-.437.662l-12.6 12.6q-.275.275-.638.425t-.762.15zM19 6.4L17.6 5zm-3.525 2.125l-.7-.725L16.2 9.225z"/></svg>' +
+                    '</button>' +
+                    '<button onclick="handleMarkerDelete(\'' + row.Label + '\')" style="background-color: #dc3545; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor=\'#c82333\'" onmouseout="this.style.backgroundColor=\'#dc3545\'">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M7 21q-.825 0-1.412-.587T5 19V6q-.425 0-.712-.288T4 5t.288-.712T5 4h4q0-.425.288-.712T10 3h4q.425 0 .713.288T15 4h4q.425 0 .713.288T20 5t-.288.713T19 6v13q0 .825-.587 1.413T17 21zm5-7.1l1.9 1.9q.275.275.7.275t.7-.275t.275-.7t-.275-.7l-1.9-1.9l1.9-1.9q.275-.275.275-.7t-.275-.7t-.7-.275t-.7.275L12 11.1l-1.9-1.9q-.275-.275-.7-.275t-.7.275t-.275.7t.275.7l1.9 1.9l-1.9 1.9q-.275.275-.275.7t.275.7t.7.275t.7-.275z"/></svg>' +
+                    '</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            markerTableBody.innerHTML = html;
+        }
+
+        window.openMarkerModal = function (editData = null) {
+            document.getElementById('modalMarkerTitle').innerText = editData ? "แก้ไขข้อมูลหมุดกำหนดเอง" : "เพิ่มข้อมูลหมุดกำหนดเอง";
+
+            if (editData) {
+                isEditMode = true;
+                originalEditLabel = editData.Label;
+                document.getElementById('inputMarkerLabel').value = editData.Label;
+                // document.getElementById('inputMarkerLabel').disabled = true; // Optional: disable edit ID
+
+                // Set radio
+                const radios = document.getElementsByName('inputMarkerIcon');
+                for (let i = 0; i < radios.length; i++) {
+                    if (radios[i].value === editData.Mark) {
+                        radios[i].checked = true;
+                        break;
+                    }
+                }
+                updateIconSelection();
+
+                document.getElementById('inputMarkerLat').value = editData.Location_Lat;
+                document.getElementById('inputMarkerLng').value = editData.Location_Lng;
+            } else {
+                isEditMode = false;
+                originalEditLabel = "";
+                document.getElementById('inputMarkerLabel').value = '';
+                document.getElementById('inputMarkerLabel').disabled = false;
+                document.getElementsByName('inputMarkerIcon')[0].checked = true;
+                updateIconSelection();
+                document.getElementById('inputMarkerLat').value = '';
+                document.getElementById('inputMarkerLng').value = '';
+            }
+
+            document.getElementById('addMarkerModal').style.display = 'flex';
+            setTimeout(initMarkerModalMap, 200);
+        };
+
+        window.closeMarkerModal = function () {
+            document.getElementById('addMarkerModal').style.display = 'none';
+            const btn = document.getElementById('submitMarkerBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.style.backgroundColor = 'var(--primary-color)';
+                btn.style.cursor = 'pointer';
+                btn.innerText = 'บันทึกข้อมูล';
+            }
+        };
+
+        window.saveMarkerData = function () {
+            const label = document.getElementById('inputMarkerLabel').value;
+            if (!label) {
+                window.customAlert("กรุณาระบุชื่อเรียก (Please enter Label)");
+                return;
+            }
+
+            const selectedIcon = document.querySelector('input[name="inputMarkerIcon"]:checked').value;
+
+            const newRow = {
+                Label: label,
+                Mark: selectedIcon,
+                Location_Lat: document.getElementById('inputMarkerLat').value,
+                Location_Lng: document.getElementById('inputMarkerLng').value
+            };
+
+            const btn = document.getElementById('submitMarkerBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.style.backgroundColor = '#6c757d';
+                btn.style.cursor = 'wait';
+                btn.innerText = 'กำลังบันทึก...';
+            }
+
+            if (isEditMode) {
+                google.script.run.withSuccessHandler((res) => {
+                    const idx = allMarkers.findIndex(d => String(d.Label) === String(originalEditLabel));
+                    if (idx !== -1) allMarkers[idx] = newRow;
+                    closeMarkerModal();
+                    renderMarkerTable();
+                    window.customAlert(res.message);
+                }).withFailureHandler((err) => {
+                    closeMarkerModal();
+                    window.customAlert("Error: " + err.message);
+                }).updateCustomMarker(originalEditLabel, newRow);
+            } else {
+                const existingIdx = allMarkers.findIndex(d => String(d.Label) === String(label));
+                if (existingIdx !== -1) {
+                    closeMarkerModal();
+                    window.customAlert("ชื่อเรียกนี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น (Label already exists)");
+                    return;
+                }
+                google.script.run.withSuccessHandler((res) => {
+                    allMarkers.unshift(newRow);
+                    closeMarkerModal();
+                    renderMarkerTable();
+                    window.customAlert(res.message);
+                }).withFailureHandler((err) => {
+                    closeMarkerModal();
+                    window.customAlert("Error: " + err.message);
+                }).addCustomMarker(newRow);
+            }
+        };
+
+        window.handleMarkerEdit = function (label) {
+            const dataToEdit = allMarkers.find(d => String(d.Label) === String(label));
+            if (dataToEdit) {
+                openMarkerModal(dataToEdit);
+            }
+        };
+
+        window.handleMarkerDelete = function (label) {
+            window.customConfirm(`คุณแน่ใจหรือไม่ว่าต้องการลบหมุด '${label}'?`, function () {
+                google.script.run.withSuccessHandler((res) => {
+                    allMarkers = allMarkers.filter(d => String(d.Label) !== String(label));
+                    renderMarkerTable();
+                    window.customAlert(res.message);
+                }).withFailureHandler((err) => {
+                    window.customAlert("Delete Failed: " + err.message);
+                }).deleteCustomMarker(label);
+            });
+        };
+
+        // --- Marker Map Modal Logic ---
+        function initMarkerModalMap() {
+            if (markerModalMap) {
+                markerModalMap.invalidateSize();
+                return;
+            }
+
+            const mapEl = document.getElementById('modalMarkerMap');
+            if (!mapEl) return;
+
+            markerModalMap = L.map('modalMarkerMap').setView([13.736717, 100.523186], 6);
+
+            L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+            }).addTo(markerModalMap);
+
+            const plusIcon = L.divIcon({
+                className: 'custom-crosshair-icon',
+                html: '<div style="position:relative; width:30px; height:30px;"><div style="position:absolute; top:14px; left:0; width:30px; height:2px; background:red;"></div><div style="position:absolute; top:0; left:14px; width:2px; height:30px; background:red;"></div></div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            markerModalCenter = L.marker(markerModalMap.getCenter(), { icon: plusIcon, interactive: false }).addTo(markerModalMap);
+
+            markerModalMap.on('move', function () {
+                markerModalCenter.setLatLng(markerModalMap.getCenter());
+            });
+
+            document.getElementById('modalMarkerMapStatus').innerText = "คลิกปุ่มด้านล่างเพื่อเลือกพิกัดศูนย์กลางแผนที่";
+        }
+
+        window.getMarkerDeviceLocation = function () {
+            if ("geolocation" in navigator) {
+                document.getElementById('modalMarkerMapStatus').innerText = "กำลังหาตำแหน่งของคุณ...";
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    if (markerModalMap) {
+                        markerModalMap.setView([lat, lng], 15);
+                        document.getElementById('modalMarkerMapStatus').innerText = "พบตำแหน่งของคุณแล้ว กดยืนยันปุ่มให้พิกัดหมุด";
+                    }
+                }, function (error) {
+                    document.getElementById('modalMarkerMapStatus').innerText = "ไม่สามารถหาตำแหน่งได้: " + error.message;
+                });
+            } else {
+                document.getElementById('modalMarkerMapStatus').innerText = "เบราว์เซอร์ไม่รองรับการหาตำแหน่ง";
+            }
+        };
+
+        window.setMarkerLocationFromMap = function () {
+            if (!markerModalMap) return;
+            const center = markerModalMap.getCenter();
+            document.getElementById('inputMarkerLat').value = center.lat.toFixed(6);
+            document.getElementById('inputMarkerLng').value = center.lng.toFixed(6);
+            document.getElementById('modalMarkerMapStatus').innerText = "กำหนดพิกัดเรียบร้อย";
+
+            // Highlight the inputs briefly
+            const latIn = document.getElementById('inputMarkerLat');
+            const lngIn = document.getElementById('inputMarkerLng');
+            latIn.style.backgroundColor = '#e8f5e9';
+            lngIn.style.backgroundColor = '#e8f5e9';
+            setTimeout(() => {
+                latIn.style.backgroundColor = '';
+                lngIn.style.backgroundColor = '';
+            }, 500);
+        };
+
+        initMarkerPage();
+    })();
+</script>

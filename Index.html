@@ -349,7 +349,8 @@
         <div class="nav-links">
             <a style="cursor: pointer;" id="navMapBtn" class="active" onclick="loadPage('Map');">มุมมองแผนที่</a>
             <? if (isEditor) { ?>
-            <a style="cursor: pointer;" id="navDataBtn" onclick="loadPage('Data');">แก้ไขข้อมูล</a>
+            <a style="cursor: pointer;" id="navDataBtn" onclick="loadPage('Data');">ข้อมูลรายการบำรุง</a>
+            <a style="cursor: pointer;" id="navMarkerBtn" onclick="loadPage('Marker');">ข้อมูลหมุดกำหนดเอง</a>
             <? } ?>
         </div>
         <div class="nav-right">
@@ -372,6 +373,9 @@
         <div id="viewData" style="display: none;">
             <?!= include('Data') ?>
         </div>
+        <div id="viewMarker" style="display: none;">
+            <?!= include('Marker') ?>
+        </div>
         <? } ?>
     </div>
 
@@ -382,6 +386,9 @@
             if (pageName === 'Data' && document.getElementById('navDataBtn')) {
                 document.getElementById('navDataBtn').classList.add('active');
             }
+            if (pageName === 'Marker' && document.getElementById('navMarkerBtn')) {
+                document.getElementById('navMarkerBtn').classList.add('active');
+            }
 
             // Simply toggle display: contents to let them act as direct grid children
             document.getElementById('viewMap').style.display = (pageName === 'Map') ? 'contents' : 'none';
@@ -389,6 +396,11 @@
             const viewDataEl = document.getElementById('viewData');
             if (viewDataEl) {
                 viewDataEl.style.display = (pageName === 'Data') ? 'contents' : 'none';
+            }
+
+            const viewMarkerEl = document.getElementById('viewMarker');
+            if (viewMarkerEl) {
+                viewMarkerEl.style.display = (pageName === 'Marker') ? 'contents' : 'none';
             }
 
             // Re-invalidate map if shown
