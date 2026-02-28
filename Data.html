@@ -10,7 +10,7 @@
         grid-row: 1;
     }
 
-    #sortSelect {
+    #sortDropdownContainer {
         grid-column: 1;
         grid-row: 2;
     }
@@ -87,7 +87,7 @@
         }
 
         .search-group,
-        #sortSelect,
+        #sortDropdownContainer,
         .year-input-container {
             grid-column: auto;
             grid-row: auto;
@@ -402,11 +402,28 @@
                     </svg>
                 </button>
             </div>
-            <select id="sortSelect"
-                style="padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; background: white; color: #495057;">
-                <option value="year_desc">เรียงตามปี (ใหม่ - เก่า)</option>
-                <option value="highway_asc">เรียงตามรหัสทางหลวง</option>
-            </select>
+            <div class="custom-dropdown" id="sortDropdownContainer" style="position: relative;">
+                <input type="hidden" id="sortSelect" value="year_desc">
+                <button type="button" id="sortSelectBtn"
+                    onclick="document.getElementById('dataSortDropdownMenu').style.display = document.getElementById('dataSortDropdownMenu').style.display === 'block' ? 'none' : 'block'"
+                    style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: white; text-align: left; cursor: pointer; color: #495057; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-size: 14px; gap: 5px;">
+                    <span id="sortSelectText"
+                        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เรียงตามปี (ใหม่ -
+                        เก่า)</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                        <path fill="#495057" d="m7 10l5 5l5-5z" />
+                    </svg>
+                </button>
+                <div id="dataSortDropdownMenu"
+                    style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 14px;">
+                    <div class="dropdown-item" onclick="setDataSortOption('year_desc', 'เรียงตามปี (ใหม่ - เก่า)')">
+                        เรียงตามปี (ใหม่ - เก่า)
+                    </div>
+                    <div class="dropdown-item" onclick="setDataSortOption('highway_asc', 'เรียงตามรหัสทางหลวง')">
+                        เรียงตามรหัสทางหลวง
+                    </div>
+                </div>
+            </div>
             <div class="year-input-container">
                 <span style="font-weight: 500; color: #495057; white-space: nowrap;">ปี (Year):</span>
                 <input type="number" id="minYearInput" class="year-input" placeholder="ตั้งแต่ปี">
@@ -559,6 +576,31 @@
 
 <script>
     (function () {
+        window.setDataSortOption = function (value, text) {
+            document.getElementById('sortSelect').value = value;
+            document.getElementById('sortSelectText').innerText = text;
+            document.getElementById('dataSortDropdownMenu').style.display = 'none';
+
+            const event = new Event('change');
+            document.getElementById('sortSelect').dispatchEvent(event);
+        };
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdowns = document.querySelectorAll('.custom-dropdown');
+            let clickedInside = false;
+            dropdowns.forEach(dropdown => {
+                if (dropdown.contains(event.target)) {
+                    clickedInside = true;
+                }
+            });
+
+            if (!clickedInside) {
+                const sortMenu = document.getElementById('dataSortDropdownMenu');
+                if (sortMenu) sortMenu.style.display = 'none';
+            }
+        });
+
         let allData = [];
         let mapYearColors = {};
 
@@ -892,11 +934,11 @@
         let modalMarker = null;
 
         const plusIcon = L.divIcon({
-                className: 'custom-crosshair-icon',
-                html: '<div style="position:relative; width:30px; height:30px;"><div style="position:absolute; top:14px; left:0; width:30px; height:2px; background:red;"></div><div style="position:absolute; top:0; left:14px; width:2px; height:30px; background:red;"></div></div>',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
+            className: 'custom-crosshair-icon',
+            html: '<div style="position:relative; width:30px; height:30px;"><div style="position:absolute; top:14px; left:0; width:30px; height:2px; background:red;"></div><div style="position:absolute; top:0; left:14px; width:2px; height:30px; background:red;"></div></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
 
         window.initModalMap = function () {
             if (!modalMap) {
