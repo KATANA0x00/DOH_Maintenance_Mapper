@@ -104,12 +104,7 @@ function addMaintenanceTask(taskObj) {
      }
   }
 
-  // Force authoritative server-side tracking
-  try {
-    taskObj.Adder = Session.getActiveUser().getEmail() || "Anonymous";
-  } catch (e) {
-    taskObj.Adder = "Unknown (Permission Needed)";
-  }
+  taskObj.Adder = "";
   
   const d = new Date();
   taskObj.Add_Date = [('0'+d.getDate()).slice(-2), ('0'+(d.getMonth()+1)).slice(-2), d.getFullYear()].join('/');
@@ -156,12 +151,7 @@ function updateMaintenanceTask(taskCode, updatedObj) {
 
   if (rowIdx === -1) throw new Error(`Task ${taskCode} not found.`);
 
-  // Force authoritative server-side tracking on modify
-  try {
-    updatedObj.Adder = Session.getActiveUser().getEmail() || "Anonymous";
-  } catch (e) {
-    updatedObj.Adder = "Unknown (Permission Needed)";
-  }
+  updatedObj.Adder = "";
   
   const d = new Date();
   updatedObj.Add_Date = [('0'+d.getDate()).slice(-2), ('0'+(d.getMonth()+1)).slice(-2), d.getFullYear()].join('/');

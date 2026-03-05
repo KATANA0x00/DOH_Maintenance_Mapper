@@ -540,8 +540,7 @@
                 const matchesYear = !isNaN(taskYear) && taskYear >= minYearSelection && taskYear <= maxYearSelection;
                 const matchesSearch = searchTerm === "" ||
                     String(task.Task_Code).toLowerCase().includes(searchTerm) ||
-                    String(task.Highway_Number).toLowerCase().includes(searchTerm) ||
-                    String(task.Adder).toLowerCase().includes(searchTerm);
+                    String(task.Highway_Number).toLowerCase().includes(searchTerm);
 
                 return matchesYear && matchesSearch;
             });

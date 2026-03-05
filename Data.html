@@ -696,8 +696,7 @@
                 const matchesYear = !isNaN(rowYear) && rowYear >= minYearSelection && rowYear <= maxYearSelection;
                 const matchesSearch = searchTerm === "" ||
                     String(row.Task_Code).toLowerCase().includes(searchTerm) ||
-                    String(row.Highway_Number).toLowerCase().includes(searchTerm) ||
-                    String(row.Adder).toLowerCase().includes(searchTerm);
+                    String(row.Highway_Number).toLowerCase().includes(searchTerm);
                 return matchesYear && matchesSearch;
             });
 

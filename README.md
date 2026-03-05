@@ -24,12 +24,12 @@ Follow these steps to deploy this application to your own Google Drive.
    - `YearColor`
    - `CustomMarker`
 5. In the `Maintenance` sheet, set up the following headers in Row 1:
-   `Task_Code`, `Year`, `Highway_Number`, `Milestone_Start_Lat`, `Milestone_Start_Lng`, `Milestone_End_Lat`, `Milestone_End_Lng`, `Distance`, `Cost`, `Guarantee_Start`, `Guarantee_End`, `Add_Date`, `Adder`
+   `Task_Code`, `Year`, `Highway_Number`, `Milestone_Start_Lat`, `Milestone_Start_Lng`, `Milestone_End_Lat`, `Milestone_End_Lng`, `Distance`, `Cost`, `Guarantee_Start`, `Guarantee_End`, `Add_Date`
    <br/>**Or can copy this and paste it into the first row of the sheet**
    <sub>
 
    ```text
-   Task_Code	Year	Highway_Number	Milestone_Start_Lat	Milestone_Start_Lng	Milestone_End_Lat	Milestone_End_Lng	Distance	Cost	Guarantee_Start	Guarantee_End	Add_Date	Adder
+   Task_Code	Year	Highway_Number	Milestone_Start_Lat	Milestone_Start_Lng	Milestone_End_Lat	Milestone_End_Lng	Distance	Cost	Guarantee_Start	Guarantee_End	Add_Date
    ```
    
    </sub>
@@ -93,7 +93,7 @@ The "Edit Data" (แก้ไขข้อมูล) tab is always visible in the
 1. In the Apps Script editor, click the **Deploy** button in the top right, then **New deployment**.<br/>![deploy_nav](./assets/nav_deploy.png)
 2. Select type **Web app**.<br/>![nav_selecttype](./assets/nav_selecttype.png)
 3. **Configuration Options:**
-   - **Execute as:** You **must** select **"User accessing the web app"** (Execute as User). *This is required so the script knows who is logging in.*
+   - **Execute as:** Select **"Me"**. *This is required so the users won't be prompted to review permissions.*
    - **Who has access:** This dropdown controls who can open the URL. 
      - **Option A (Public View / Restricted Edit):** Choose **"Anyone with Google Account"**. Everyone can view the map, but only "Editors" from Step 3 can actually edit data.
      - **Option B (Organization Only):** Choose **"Anyone within [Your Organization]"**. Only internal staff can open the link.
