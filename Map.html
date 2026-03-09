@@ -108,7 +108,11 @@
                         style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; z-index: 1000; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 14px;">
                         <label class="dropdown-item">
                             <input type="checkbox" id="layerToggleTask" checked
-                                onchange="toggleMapLayer('task', this.checked)"> หลักกิโลเมตร
+                                onchange="toggleMapLayer('task', this.checked)"> เส้นทางบำรุงรักษา
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="layerToggleMilestone"
+                                onchange="toggleMapLayer('milestone', this.checked)"> หลักกิโลเมตร
                         </label>
                         <label class="dropdown-item">
                             <input type="checkbox" id="layerToggleGeneral"
@@ -182,6 +186,7 @@
         resetBoundsControl.addTo(window.mapInstance);
 
         window.taskPolylinesLayer = L.featureGroup().addTo(window.mapInstance); // Default ON
+        window.milestoneLayer = L.featureGroup(); // Default OFF
         window.markerLayerGeneral = L.featureGroup(); // Default OFF
         window.markerLayerLamp = L.featureGroup(); // Default OFF
         window.markerLayerBuilding = L.featureGroup(); // Default OFF
@@ -194,6 +199,7 @@
             let targetLayer;
             switch (layerName) {
                 case 'task': targetLayer = window.taskPolylinesLayer; break;
+                case 'milestone': targetLayer = window.milestoneLayer; break;
                 case 'general': targetLayer = window.markerLayerGeneral; break;
                 case 'lamp': targetLayer = window.markerLayerLamp; break;
                 case 'building': targetLayer = window.markerLayerBuilding; break;
@@ -296,10 +302,43 @@
                 if (window.currentRenderId !== renderId) return;
                 if (!infraData.features || !infraData.features.length) return;
 
-                const roadPoints = infraData.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                const secId = infraData.features[0].properties.section_part_id;
+                let roadPoints = [];
+                let secIds = new Set();
+                
+                // Sort features by km_start so coordinates represent a continuous path
+                infraData.features.sort((a, b) => (a.properties.km_start || 0) - (b.properties.km_start || 0)).forEach(f => {
+                    let featurePoints = [];
+                    if (f.geometry && f.geometry.type === 'LineString') {
+                        featurePoints = f.geometry.coordinates.map(c => [c[1], c[0]]);
+                    } else if (f.geometry && f.geometry.type === 'MultiLineString') {
+                        f.geometry.coordinates.forEach(line => {
+                            featurePoints.push(...line.map(c => [c[1], c[0]]));
+                        });
+                    }
+                    
+                    if (featurePoints.length > 0) {
+                        if (roadPoints.length > 0) {
+                            let lastPoint = roadPoints[roadPoints.length - 1];
+                            let firstPoint = featurePoints[0];
+                            let lastFeaturePoint = featurePoints[featurePoints.length - 1];
+                            
+                            let distToStart = Math.pow(lastPoint[0] - firstPoint[0], 2) + Math.pow(lastPoint[1] - firstPoint[1], 2);
+                            let distToEnd = Math.pow(lastPoint[0] - lastFeaturePoint[0], 2) + Math.pow(lastPoint[1] - lastFeaturePoint[1], 2);
+                            
+                            if (distToEnd < distToStart) {
+                                featurePoints.reverse();
+                            }
+                        }
+                        roadPoints.push(...featurePoints);
+                    }
 
-                const kmUrl = WFS_BASE + '?service=WFS&version=1.1.0&request=GetFeature&typeName=roadnet:section_km&CQL_FILTER=section_part_id=' + secId + '&outputFormat=application/json';
+                    if (f.properties && f.properties.section_part_id) {
+                        secIds.add(f.properties.section_part_id);
+                    }
+                });
+
+                const secIdList = Array.from(secIds).join(',');
+                const kmUrl = WFS_BASE + '?service=WFS&version=1.1.0&request=GetFeature&typeName=roadnet:section_km&CQL_FILTER=section_part_id IN (' + secIdList + ')&outputFormat=application/json';
                 const kmRes = await fetch(kmUrl);
                 const kmData = await kmRes.json();
 
@@ -317,7 +356,14 @@
                 const idxStart = findNearest(startCoords, roadPoints);
                 const idxEnd = findNearest(stopCoords, roadPoints);
 
-                let taskCurve = roadPoints.slice(Math.min(idxStart, idxEnd), Math.max(idxStart, idxEnd) + 1);
+                let taskCurve = [];
+                if (idxStart <= idxEnd) {
+                    taskCurve = roadPoints.slice(idxStart, idxEnd + 1);
+                } else {
+                    // Start index is > End index, meaning the road points are ordered opposite to the task direction
+                    taskCurve = roadPoints.slice(idxEnd, idxStart + 1).reverse();
+                }
+                
                 taskCurve.unshift(startCoords);
                 taskCurve.push(stopCoords);
 
@@ -367,7 +413,7 @@
 
                     allMS.forEach(ms => {
                         L.marker(ms.coords, { icon: createLabelIcon(ms.label) })
-                            .addTo(routeLayerGroup)
+                            .addTo(window.milestoneLayer)
                             .bindPopup('<b>ป้าย กม. ที่ ' + ms.label + '</b><br>ทางหลวง: ' + highway);
                     });
 
@@ -464,6 +510,7 @@
             countText.innerHTML = 'กำลังโหลดข้อมูล...';
             document.getElementById('taskList').innerHTML = '';
             window.taskPolylinesLayer.clearLayers();
+            window.milestoneLayer.clearLayers();
             window.markerLayerGeneral.clearLayers();
             window.markerLayerLamp.clearLayers();
             window.markerLayerBuilding.clearLayers();
